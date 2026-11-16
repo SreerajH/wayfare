@@ -11,6 +11,7 @@ import { UserAvatar } from '@/components/wayfare/user-avatar';
 import { BottomTabInset } from '@/constants/theme';
 import { CONTINENT_LABELS, Radius, Space, Type, W } from '@/constants/wayfare';
 import { formatPrice } from '@/features/catalog/format';
+import { useNotifications } from '@/hooks/use-notifications';
 import { useAvatarUrl } from '@/hooks/use-profile';
 import { useDestinations } from '@/hooks/use-destinations';
 import { pricePerDay, useExperienceSections, type CatalogExperience, type SectionKey } from '@/hooks/use-experience-sections';
@@ -37,6 +38,7 @@ export default function HomeScreen() {
   const [continent, setContinent] = useState<Continent | undefined>(undefined);
   const destinations = useDestinations(continent);
   const sections = useExperienceSections();
+  const notifications = useNotifications();
   const [refreshing, setRefreshing] = useState(false);
   const coach = useCoachMarks();
 
@@ -72,6 +74,14 @@ export default function HomeScreen() {
             <Text style={[Type.bodyMedium, { color: W.textSecondary }]}>Where would you like to go next?</Text>
           </View>
           <Pressable
+            onPress={() => router.push('/notifications')}
+            accessibilityRole="button"
+            accessibilityLabel={notifications.unread.size ? `Notifications, ${notifications.unread.size} unread` : 'Notifications'}
+            style={styles.bell}>
+            <Icon name="bell" size={22} />
+            {notifications.unread.size ? <View style={styles.bellDot} /> : null}
+          </Pressable>
+          <Pressable
             onPress={() => router.push(session ? '/more' : { pathname: '/sign-in', params: { returnTo: '/' } })}
             accessibilityRole="button"
             accessibilityLabel={session ? 'Your profile' : 'Sign in'}
@@ -80,15 +90,26 @@ export default function HomeScreen() {
           </Pressable>
         </View>
 
-        <CoachTarget id="search" style={styles.searchWrap}>
+        <View style={styles.searchRow}>
+          <CoachTarget id="search" style={styles.searchWrap}>
+            <Pressable
+              onPress={() => router.push('/search')}
+              accessibilityRole="search"
+              style={({ pressed }) => [styles.search, pressed && { opacity: 0.8 }]}>
+              <Icon name="search" color={W.textSecondary} />
+              <Text style={[Type.bodyMedium, { color: W.textSecondary, flexShrink: 1 }]} numberOfLines={1}>
+                Search destinations or experiences
+              </Text>
+            </Pressable>
+          </CoachTarget>
           <Pressable
-            onPress={() => router.push('/search')}
-            accessibilityRole="search"
-            style={({ pressed }) => [styles.search, pressed && { opacity: 0.8 }]}>
-            <Icon name="search" color={W.textSecondary} />
-            <Text style={[Type.bodyMedium, { color: W.textSecondary }]}>Search destinations or experiences</Text>
+            onPress={() => router.push({ pathname: '/search', params: { filters: '1' } })}
+            accessibilityRole="button"
+            accessibilityLabel="Filters"
+            style={({ pressed }) => [styles.filterButton, pressed && { opacity: 0.85 }]}>
+            <Icon name="filter" color={W.textInverse} />
           </Pressable>
-        </CoachTarget>
+        </View>
 
         <Text style={[Type.heading, styles.sectionTitle]}>Select your next trip</Text>
       </View>
@@ -200,7 +221,21 @@ const styles = StyleSheet.create({
   padded: { paddingHorizontal: Space.screenX, gap: 4 },
   greetingRow: { flexDirection: 'row', alignItems: 'center', gap: Space.md },
   avatarHit: { width: 48, height: 48, alignItems: 'center', justifyContent: 'center' },
-  searchWrap: { marginTop: Space.xl },
+  bell: { width: 44, height: 44, borderRadius: Radius.pill, backgroundColor: W.card, alignItems: 'center', justifyContent: 'center' },
+  bellDot: {
+    position: 'absolute',
+    top: 10,
+    right: 11,
+    width: 9,
+    height: 9,
+    borderRadius: Radius.pill,
+    backgroundColor: W.heart,
+    borderWidth: 1.5,
+    borderColor: W.card,
+  },
+  searchRow: { flexDirection: 'row', alignItems: 'center', gap: Space.sm, marginTop: Space.xl },
+  searchWrap: { flex: 1 },
+  filterButton: { width: 48, height: 48, borderRadius: Radius.pill, backgroundColor: W.dark, alignItems: 'center', justifyContent: 'center' },
   search: {
     height: 48,
     flexDirection: 'row',

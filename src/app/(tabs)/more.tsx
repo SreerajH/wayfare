@@ -79,7 +79,9 @@ export default function ProfileScreen() {
         <Row icon="user" label="Edit profile" onPress={() => router.push('/profile/edit')} />
         <Row icon="calendar" label="My trips" onPress={() => router.push('/trips')} />
         <Row icon="heart" label="Saved places" onPress={() => router.push('/saved')} />
+        <Row icon="bell" label="Notifications" onPress={() => router.push('/notifications')} />
         <Row icon="tips" label="Replay app tips" onPress={replayTips} />
+        <Row icon="location" label="Replay intro" onPress={() => router.push('/onboarding')} />
         <Row icon="help" label="Help & support" onPress={() => toast('Help & support is coming soon.', 'info')} last />
       </View>
 

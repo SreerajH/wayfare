@@ -275,6 +275,50 @@ export type Database = {
         }
         Relationships: []
       }
+      reviews: {
+        Row: {
+          author_location: string | null
+          author_name: string
+          body: string
+          created_at: string
+          experience_id: string
+          id: string
+          rating: number
+          title: string | null
+          travelled_on: string
+        }
+        Insert: {
+          author_location?: string | null
+          author_name: string
+          body: string
+          created_at?: string
+          experience_id: string
+          id?: string
+          rating: number
+          title?: string | null
+          travelled_on: string
+        }
+        Update: {
+          author_location?: string | null
+          author_name?: string
+          body?: string
+          created_at?: string
+          experience_id?: string
+          id?: string
+          rating?: number
+          title?: string | null
+          travelled_on?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "reviews_experience_id_fkey"
+            columns: ["experience_id"]
+            isOneToOne: false
+            referencedRelation: "experiences"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       saved_items: {
         Row: {
           created_at: string

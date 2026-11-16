@@ -46,7 +46,7 @@ export function rankExperiences<T extends Rankable>(list: readonly T[], key: Sec
 async function fetchCatalog() {
   const { data, error } = await supabase
     .from('experiences')
-    .select(`${EXPERIENCE_CARD_FIELDS}, destination:destinations(name, country)`);
+    .select(`${EXPERIENCE_CARD_FIELDS}, destination:destinations(name, country, continent)`);
   if (error) throw error;
   return data;
 }
@@ -72,6 +72,11 @@ export function useExperienceSections() {
         (s) => s.items.length >= (MIN_ITEMS[s.key] ?? 1),
       ),
   });
+}
+
+/** The whole (small) catalog, e.g. for the Filters sheet's live result count. Same cached query as Home. */
+export function useCatalog() {
+  return useQuery({ queryKey: ['experiences', 'catalog'], queryFn: fetchCatalog });
 }
 
 /** Full ranked list for search's "See all" (same cached query as Home). */

@@ -4,6 +4,7 @@ import { FlatList, Pressable, ScrollView, StyleSheet, Text, TextInput, View } fr
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
 import { ExperienceCard } from '@/components/wayfare/cards';
+import { activeFilterCount, FiltersSheet } from '@/components/wayfare/filters-sheet';
 import { BackButton, Chip, EmptyState, ErrorState, Icon, RatingBadge, SectionHeader } from '@/components/wayfare/primitives';
 import { RemoteImage } from '@/components/wayfare/remote-image';
 import { ListSkeleton } from '@/components/wayfare/skeleton';
@@ -24,7 +25,9 @@ type DestinationRowData = {
 export default function SearchScreen() {
   const insets = useSafeAreaInsets();
   // Home's "See all" opens /search?sort=popular|value|rating|short|day
-  const params = useLocalSearchParams<{ sort?: string }>();
+  const params = useLocalSearchParams<{ sort?: string; filters?: string }>();
+  // Home's filter button opens /search?filters=1 with the sheet already up
+  const [sheetOpen, setSheetOpen] = useState(params.filters === '1');
   const [sort, setSort] = useState<SectionKey | undefined>(isSectionKey(params.sort) ? params.sort : undefined);
   const ranked = useRankedExperiences(sort);
   const [query, setQuery] = useState('');
@@ -47,7 +50,7 @@ export default function SearchScreen() {
           <TextInput
             value={query}
             onChangeText={setQuery}
-            autoFocus
+            autoFocus={params.filters !== '1'}
             placeholder="Search destinations or experiences"
             placeholderTextColor={W.textSecondary}
             returnKeyType="search"
@@ -61,12 +64,22 @@ export default function SearchScreen() {
             </Pressable>
           ) : null}
         </View>
+        <Pressable
+          onPress={() => setSheetOpen(true)}
+          accessibilityRole="button"
+          accessibilityLabel={activeFilterCount(filters) ? `Filters, ${activeFilterCount(filters)} applied` : 'Filters'}
+          style={styles.filterButton}>
+          <Icon name="filter" color={W.textInverse} />
+          {activeFilterCount(filters) ? (
+            <View style={styles.filterBadge}>
+              <Text style={[Type.micro, { color: W.textInverse }]}>{activeFilterCount(filters)}</Text>
+            </View>
+          ) : null}
+        </Pressable>
       </View>
 
       <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={styles.chips} style={{ flexGrow: 0 }}>
         {sort ? <Chip label={`${SECTION_META[sort].title}  ✕`} active onPress={() => setSort(undefined)} /> : null}
-        <Chip label="4.5+ rating" active={filters.minRating === 4.5} onPress={() => toggle('minRating', 4.5)} />
-        <Chip label="Under $500" active={filters.maxPrice === 500} onPress={() => toggle('maxPrice', 500)} />
         {CONTINENTS.map((c) => (
           <Chip key={c} label={CONTINENT_LABELS[c]} active={filters.continent === c} onPress={() => toggle('continent', c)} />
         ))}
@@ -166,6 +179,17 @@ export default function SearchScreen() {
           </View>
         ) : null}
       </ScrollView>
+
+      <FiltersSheet
+        visible={sheetOpen}
+        value={filters}
+        query={query}
+        onClose={() => setSheetOpen(false)}
+        onApply={(f) => {
+          setFilters(f);
+          setSheetOpen(false);
+        }}
+      />
     </View>
   );
 }
@@ -209,6 +233,21 @@ const styles = StyleSheet.create({
     paddingHorizontal: Space.lg,
     borderRadius: Radius.pill,
     backgroundColor: W.card,
+  },
+  filterButton: { width: 48, height: 48, borderRadius: Radius.pill, backgroundColor: W.dark, alignItems: 'center', justifyContent: 'center' },
+  filterBadge: {
+    position: 'absolute',
+    top: -2,
+    right: -2,
+    minWidth: 20,
+    height: 20,
+    paddingHorizontal: 4,
+    borderRadius: Radius.pill,
+    backgroundColor: W.accentStrong,
+    borderWidth: 2,
+    borderColor: W.background,
+    alignItems: 'center',
+    justifyContent: 'center',
   },
   searchInput: { flex: 1, fontFamily: Font.regular, fontSize: 15, color: W.text, height: '100%' },
   chips: { paddingHorizontal: Space.screenX, gap: Space.sm, paddingVertical: Space.sm },

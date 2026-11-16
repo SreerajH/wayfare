@@ -1,12 +1,13 @@
 import { LinearGradient } from 'expo-linear-gradient';
 import { useLocalSearchParams } from 'expo-router';
-import { useState } from 'react';
+import { useRef, useState, type ComponentRef } from 'react';
 import { Pressable, ScrollView, StyleSheet, Text, View } from 'react-native';
 import Animated from 'react-native-reanimated';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
 import { ExperienceCard } from '@/components/wayfare/cards';
 import { ExpandableText, expandLayout } from '@/components/wayfare/expandable-text';
+import { ReviewsSection } from '@/components/wayfare/reviews';
 import { HeartButton } from '@/components/wayfare/heart-button';
 import { BackButton, EmptyState, ErrorState, Icon, RatingBadge, SectionHeader } from '@/components/wayfare/primitives';
 import { RemoteImage } from '@/components/wayfare/remote-image';
@@ -15,7 +16,6 @@ import { Radius, Space, Type, W } from '@/constants/wayfare';
 import { formatReviews } from '@/features/catalog/format';
 import { useDestination } from '@/hooks/use-destination';
 import { useScreenStatusBar } from '@/hooks/use-screen-status-bar';
-import { useToast } from '@/providers/toast-provider';
 
 const HERO_HEIGHT = 380;
 
@@ -23,7 +23,9 @@ export default function DestinationScreen() {
   const { slug } = useLocalSearchParams<{ slug: string }>();
   const insets = useSafeAreaInsets();
   const q = useDestination(slug);
-  const toast = useToast();
+  const scroller = useRef<ComponentRef<typeof ScrollView>>(null);
+  const [sheetY, setSheetY] = useState(0);
+  const [reviewsY, setReviewsY] = useState(0);
   // light ink while the hero photo is behind the status bar, dark once the white sheet reaches it
   const [pastHero, setPastHero] = useState(false);
   useScreenStatusBar(pastHero || !q.data ? 'dark' : 'light');
@@ -56,6 +58,7 @@ export default function DestinationScreen() {
   const d = q.data;
   return (
     <ScrollView
+      ref={scroller}
       style={styles.screen}
       scrollEventThrottle={32}
       onScroll={(ev) => {
@@ -80,7 +83,7 @@ export default function DestinationScreen() {
         </View>
       </View>
 
-      <View style={styles.sheet}>
+      <View style={styles.sheet} onLayout={(e) => setSheetY(e.nativeEvent.layout.y)}>
         <View style={styles.grabber} />
         <View style={styles.titleRow}>
           <Text style={[Type.display, styles.flex, { color: W.text }]}>{d.name}</Text>
@@ -92,9 +95,9 @@ export default function DestinationScreen() {
             <Text style={[Type.bodyMedium, { color: W.text }]}>{d.country}</Text>
           </View>
           <Pressable
-            onPress={() => toast('Reviews coming soon', 'info')}
+            onPress={() => scroller.current?.scrollTo({ y: Math.max(0, sheetY + reviewsY - insets.top - Space.lg), animated: true })}
             accessibilityRole="button"
-            accessibilityLabel={`${formatReviews(d.review_count)}, read reviews`}
+            accessibilityLabel={`${formatReviews(d.review_count)}, jump to reviews`}
             hitSlop={8}>
             <Text style={[Type.bodyMedium, styles.reviews]}>{formatReviews(d.review_count)}</Text>
           </Pressable>
@@ -127,6 +130,10 @@ export default function DestinationScreen() {
             ))
           )}
         </Animated.View>
+
+        <Animated.View layout={expandLayout} style={styles.reviewsBlock} onLayout={(e) => setReviewsY(e.nativeEvent.layout.y)}>
+          <ReviewsSection target={{ kind: 'destination', id: d.id }} slug={d.slug} rating={d.rating} count={d.review_count} />
+        </Animated.View>
       </View>
     </ScrollView>
   );
@@ -156,4 +163,6 @@ const styles = StyleSheet.create({
   reviews: { color: W.textSecondary, textDecorationLine: 'underline' },
   description: { marginTop: Space.sm },
   section: { marginTop: Space.xxl, gap: Space.lg },
+  // the review cards scroll edge to edge, so undo the sheet's side padding
+  reviewsBlock: { marginTop: Space.xxxl, marginHorizontal: -Space.screenX },
 });

@@ -7,13 +7,15 @@ import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
 import { HeartButton } from '@/components/wayfare/heart-button';
 import { ItineraryTimeline } from '@/components/wayfare/itinerary-timeline';
-import { BackButton, Chip, EmptyState, ErrorState, Icon, ICONS } from '@/components/wayfare/primitives';
+import { RatingSummary, ReviewCard } from '@/components/wayfare/reviews';
+import { BackButton, Chip, EmptyState, ErrorState, Icon, ICONS, LoadingState } from '@/components/wayfare/primitives';
 import { RemoteImage } from '@/components/wayfare/remote-image';
 import { DetailSkeleton } from '@/components/wayfare/skeleton';
 import { Radius, Space, Type, W } from '@/constants/wayfare';
 import { formatDuration, formatPrice } from '@/features/catalog/format';
 import { useExperience } from '@/hooks/use-experience';
 import { useRequireAuth } from '@/hooks/use-require-auth';
+import { useReviews } from '@/hooks/use-reviews';
 import { useScreenStatusBar } from '@/hooks/use-screen-status-bar';
 
 const BAR_HEIGHT = 76;
@@ -30,7 +32,7 @@ export default function ExperienceScreen() {
   const router = useRouter();
   const requireAuth = useRequireAuth();
   const q = useExperience(slug);
-  const [tab, setTab] = useState<'itinerary' | 'included'>('itinerary');
+  const [tab, setTab] = useState<'itinerary' | 'included' | 'reviews'>('itinerary');
   useScreenStatusBar(q.data ? 'light' : 'dark');
 
   // the header is pinned outside the scroll view (always below insets.top) and turns solid once the photo scrolls away
@@ -87,6 +89,7 @@ export default function ExperienceScreen() {
           <View style={styles.tabs}>
             <Chip label="Itinerary" active={tab === 'itinerary'} onPress={() => setTab('itinerary')} />
             <Chip label="What's included" active={tab === 'included'} onPress={() => setTab('included')} />
+            <Chip label="Reviews" active={tab === 'reviews'} onPress={() => setTab('reviews')} />
           </View>
           {tab === 'itinerary' ? (
             <>
@@ -100,6 +103,8 @@ export default function ExperienceScreen() {
                 <ItineraryTimeline days={e.itinerary_days} />
               )}
             </>
+          ) : tab === 'reviews' ? (
+            <ExperienceReviews id={e.id} rating={e.rating} count={e.review_count} />
           ) : (
             <>
               <Text style={[Type.heading, { color: W.text }]}>What&apos;s included</Text>
@@ -180,6 +185,24 @@ export default function ExperienceScreen() {
           <Text style={[Type.bodyMedium, styles.inverse]}>Book now</Text>
         </Pressable>
       </View>
+    </View>
+  );
+}
+
+function ExperienceReviews({ id, rating, count }: { id: string; rating: number | null; count: number }) {
+  const q = useReviews({ kind: 'experience', id });
+  return (
+    <View style={{ gap: Space.md }}>
+      <RatingSummary rating={rating} count={count} />
+      {q.isPending ? (
+        <LoadingState height={160} />
+      ) : q.isError ? (
+        <ErrorState height={160} onRetry={() => q.refetch()} />
+      ) : q.data.length === 0 ? (
+        <EmptyState height={140} icon="star" title="No written reviews yet" message="Reviews from travellers will show up here." />
+      ) : (
+        q.data.map((r) => <ReviewCard key={r.id} review={r} />)
+      )}
     </View>
   );
 }

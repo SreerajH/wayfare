@@ -1,6 +1,6 @@
 import { ActivityIndicator, Modal, Pressable, StyleSheet, Text, TextInput, View, type TextInputProps } from 'react-native';
 
-import { Icon } from '@/components/wayfare/primitives';
+import { Icon, type ICONS } from '@/components/wayfare/primitives';
 import { Font, Radius, Space, Type, W } from '@/constants/wayfare';
 
 type ButtonProps = {
@@ -10,9 +10,11 @@ type ButtonProps = {
   loading?: boolean;
   disabled?: boolean;
   fill?: boolean;
+  /** trailing icon, e.g. the arrow on "Next" */
+  icon?: keyof typeof ICONS;
 };
 
-export function Button({ label, onPress, variant = 'primary', loading, disabled, fill }: ButtonProps) {
+export function Button({ label, onPress, variant = 'primary', loading, disabled, fill, icon }: ButtonProps) {
   const off = disabled || loading;
   const bg = variant === 'primary' ? W.accentStrong : variant === 'dark' ? W.dark : 'transparent';
   const color = variant === 'ghost' ? W.text : variant === 'danger' ? W.error : W.textInverse;
@@ -29,7 +31,14 @@ export function Button({ label, onPress, variant = 'primary', loading, disabled,
         variant === 'danger' && styles.dangerBorder,
         (pressed || off) && { opacity: off ? 0.5 : 0.85 },
       ]}>
-      {loading ? <ActivityIndicator color={color} /> : <Text style={[Type.bodyMedium, { color }]}>{label}</Text>}
+      {loading ? (
+        <ActivityIndicator color={color} />
+      ) : (
+        <View style={styles.buttonInner}>
+          <Text style={[Type.bodyMedium, { color }]}>{label}</Text>
+          {icon ? <Icon name={icon} size={18} color={color} /> : null}
+        </View>
+      )}
     </Pressable>
   );
 }
@@ -114,6 +123,7 @@ export function ConfirmDialog({ visible, title, message, confirmLabel, destructi
 
 const styles = StyleSheet.create({
   button: { height: 52, paddingHorizontal: Space.xxl, borderRadius: Radius.pill, alignItems: 'center', justifyContent: 'center' },
+  buttonInner: { flexDirection: 'row', alignItems: 'center', gap: Space.sm },
   dangerBorder: { borderWidth: 1, borderColor: W.border },
   badge: { flexDirection: 'row', alignItems: 'center', gap: Space.sm, paddingVertical: 4, paddingHorizontal: Space.md, borderRadius: Radius.pill, alignSelf: 'flex-start' },
   dot: { width: 8, height: 8, borderRadius: 4 },

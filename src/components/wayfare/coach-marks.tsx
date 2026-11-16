@@ -15,7 +15,7 @@ import { Pressable, StyleSheet, Text, View, type LayoutChangeEvent, type StylePr
 import Animated, { FadeIn, FadeInDown } from 'react-native-reanimated';
 import Svg, { Defs, Mask, Rect } from 'react-native-svg';
 
-import { Font, Radius, Space, themedStyles, Type, W } from '@/constants/wayfare';
+import { currentColorScheme, Font, Radius, Space, themedStyles, Type, W } from '@/constants/wayfare';
 
 /**
  * First-run "coach marks": the screen dims, one control at a time is spotlighted and a small
@@ -273,6 +273,7 @@ const styles = themedStyles(() => ({
   arrowBottom: { bottom: -6 },
   actions: { flexDirection: 'row', justifyContent: 'flex-end', alignItems: 'center', gap: Space.lg, marginTop: Space.md },
   skip: { paddingVertical: Space.sm },
-  next: { backgroundColor: W.dark, borderRadius: Radius.pill, paddingHorizontal: Space.xl, height: 40, justifyContent: 'center' },
+  // green on the dark theme so the tip's main action stands out from its graphite card
+  next: { backgroundColor: currentColorScheme() === 'dark' ? W.accentFill : W.dark, borderRadius: Radius.pill, paddingHorizontal: Space.xl, height: 40, justifyContent: 'center' },
   nextLabel: { fontFamily: Font.semibold, fontSize: 14, color: W.textInverse },
 }));

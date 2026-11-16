@@ -5,7 +5,7 @@ import { Pressable, StyleSheet, Text, View } from 'react-native';
 import { HeartButton } from '@/components/wayfare/heart-button';
 import { Icon, RatingBadge } from '@/components/wayfare/primitives';
 import { RemoteImage } from '@/components/wayfare/remote-image';
-import { Radius, Space, themedStyles, Type, W } from '@/constants/wayfare';
+import { currentColorScheme, LightPalette, Radius, Space, themedStyles, Type, W } from '@/constants/wayfare';
 import { formatDuration, formatPrice, formatReviews } from '@/features/catalog/format';
 
 type DestinationCardProps = {
@@ -41,7 +41,7 @@ export function DestinationCard({ id, slug, name, country, heroImageUrl, rating,
         <View style={styles.glass}>
           <Text style={[Type.bodyMedium, { color: W.textInverse }]}>Explore destination</Text>
           <View style={styles.glassArrow}>
-            <Icon name="arrow" />
+            <Icon name="arrow" color={LightPalette.text} />
           </View>
         </View>
       </View>
@@ -158,11 +158,12 @@ const styles = themedStyles(() => ({
     borderWidth: 1,
     borderColor: 'rgba(255, 255, 255, 0.35)',
   },
+  // always a white circle on the photo, in both themes
   glassArrow: {
     width: 44,
     height: 44,
     borderRadius: Radius.pill,
-    backgroundColor: W.background,
+    backgroundColor: LightPalette.background,
     alignItems: 'center',
     justifyContent: 'center',
   },
@@ -183,11 +184,12 @@ const styles = themedStyles(() => ({
   expBody: { paddingHorizontal: 4, gap: 4 },
   // marginTop auto keeps footers aligned when cards in a row have 1- and 2-line titles
   expFooter: { justifyContent: 'space-between', marginTop: 'auto', paddingTop: 4 },
+  // charcoal on light, green on dark (a grey circle disappears into the dark card)
   darkCircle: {
     width: 40,
     height: 40,
     borderRadius: Radius.pill,
-    backgroundColor: W.dark,
+    backgroundColor: currentColorScheme() === 'dark' ? W.accentFill : W.dark,
     alignItems: 'center',
     justifyContent: 'center',
   },

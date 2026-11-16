@@ -42,7 +42,7 @@ export default function PaymentScreen() {
       setPhase('booking');
       const booking = await createBooking.mutateAsync({ experience_id: e.id, start_date: p.start, adults, children, payment });
       router.dismissAll();
-      router.replace({ pathname: '/book/confirmed', params: { id: booking.id, code: booking.booking_code, title: e.title, start: booking.start_date, end: booking.end_date } });
+      router.replace({ pathname: '/book/confirmed', params: { id: booking.id, code: booking.booking_code, title: e.title, start: booking.start_date, end: booking.end_date, adults: String(adults), children: String(children) } });
     } catch (err) {
       setError(await readableError(err));
       setPhase('idle');

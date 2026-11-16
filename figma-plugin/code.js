@@ -2520,6 +2520,70 @@ async function runA3() {
   }
 }
 
+// ---------- Export inclusion photos ----------
+// Exports the "What's included" image layers from "Wayfare / Popular experiences 2" at 2x,
+// converts them to WebP (<=150 KB) in the plugin UI, and posts them to a local receiver
+// (http://localhost:4199) that saves supabase/seed-images/inclusions/tokyo-essentials-<slug>.webp.
+const INCLUSION_IMAGES = [
+  { slug: 'accommodation', ids: ['2667:104'] },
+  { slug: 'transport', ids: ['2667:99'] },
+  { slug: 'tours', ids: ['2667:126', '2667:94'] },
+  { slug: 'breakfast', ids: ['2667:123'] },
+];
+
+const INCLUSION_UI = '<script>' +
+  'const MAX = 150 * 1024;' +
+  'async function toWebp(bytes) {' +
+  '  const bmp = await createImageBitmap(new Blob([bytes], { type: "image/png" }));' +
+  '  const scale = Math.min(1, 1200 / Math.max(bmp.width, bmp.height));' +
+  '  const c = document.createElement("canvas");' +
+  '  c.width = Math.round(bmp.width * scale); c.height = Math.round(bmp.height * scale);' +
+  '  c.getContext("2d").drawImage(bmp, 0, 0, c.width, c.height);' +
+  '  let q = 0.86, blob;' +
+  '  do { blob = await new Promise(function (r) { c.toBlob(r, "image/webp", q); }); q -= 0.08; } while (blob.size > MAX && q > 0.3);' +
+  '  if (blob.type !== "image/webp") throw new Error("WebP encoding is not supported here");' +
+  '  return { blob: blob, w: c.width, h: c.height };' +
+  '}' +
+  'onmessage = async function (ev) {' +
+  '  const files = ev.data.pluginMessage.files; const results = [];' +
+  '  try {' +
+  '    for (const f of files) {' +
+  '      const out = await toWebp(f.bytes);' +
+  '      const res = await fetch("http://localhost:4199/inclusions/" + f.slug, { method: "POST", body: out.blob });' +
+  '      if (!res.ok) throw new Error(f.slug + ": receiver said " + res.status);' +
+  '      results.push(f.slug + " " + out.w + "x" + out.h + " " + Math.round(out.blob.size / 1024) + "KB");' +
+  '    }' +
+  '    parent.postMessage({ pluginMessage: { ok: true, results: results } }, "*");' +
+  '  } catch (e) { parent.postMessage({ pluginMessage: { ok: false, error: String(e && e.message ? e.message : e) } }, "*"); }' +
+  '};' +
+  '</script>';
+
+async function runExportInclusions() {
+  const files = [];
+  for (const item of INCLUSION_IMAGES) {
+    let bytes = null;
+    for (const id of item.ids) {
+      const node = await figma.getNodeByIdAsync(id);
+      if (node && 'exportAsync' in node) {
+        try {
+          bytes = await node.exportAsync({ format: 'PNG', constraint: { type: 'SCALE', value: 2 } });
+          break;
+        } catch (e) { /* try the fallback id */ }
+      }
+    }
+    if (!bytes) throw new Error('Could not find/export the ' + item.slug + ' image layer');
+    files.push({ slug: item.slug, bytes: bytes });
+  }
+  return new Promise(function (resolve, reject) {
+    figma.showUI(INCLUSION_UI, { visible: false });
+    figma.ui.onmessage = function (msg) {
+      if (msg.ok) resolve('✓ Saved ' + msg.results.length + ' inclusion photos: ' + msg.results.join(', '));
+      else reject(new Error(msg.error + ' (is the local receiver running?)'));
+    };
+    figma.ui.postMessage({ files: files });
+  });
+}
+
 async function main() {
   try {
     let msg;
@@ -2527,6 +2591,7 @@ async function main() {
     else if (figma.command === 'a4') msg = await runA4();
     else if (figma.command === 'a5') msg = await runA5();
     else if (figma.command === 'a6') msg = await runA6();
+    else if (figma.command === 'inclusions') msg = await runExportInclusions();
     else throw new Error('Unknown command: ' + figma.command);
     figma.closePlugin(msg);
   } catch (e) {

@@ -11,7 +11,7 @@ export function useExperience(slug: string) {
       const { data, error } = await supabase
         .from('experiences')
         .select(
-          '*, destination:destinations(id, name, country, slug), itinerary_days(id, day_number, title, description, image_url), inclusions(id, icon, title, detail, sort_order)',
+          '*, destination:destinations(id, name, country, slug), itinerary_days(id, day_number, title, description, image_url), inclusions(id, icon, title, detail, sort_order, image_url)',
         )
         .eq('slug', slug)
         .order('day_number', { referencedTable: 'itinerary_days' })

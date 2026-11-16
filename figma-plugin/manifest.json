@@ -3,13 +3,39 @@
   "id": "wayfare-builder-local",
   "api": "1.0.0",
   "main": "code.js",
-  "editorType": ["figma"],
+  "editorType": [
+    "figma"
+  ],
   "documentAccess": "dynamic-page",
-  "networkAccess": { "allowedDomains": ["none"] },
+  "networkAccess": {
+    "allowedDomains": [
+      "none"
+    ],
+    "devAllowedDomains": [
+      "http://localhost:4199"
+    ],
+    "reasoning": "Dev only: sends exported inclusion photos to a local receiver that saves them into the repo."
+  },
   "menu": [
-    { "name": "A3 · Build components", "command": "a3" },
-    { "name": "A4 · Rebuild screens", "command": "a4" },
-    { "name": "A5 · Add new screens", "command": "a5" },
-    { "name": "A6 · Prototype + QA report", "command": "a6" }
+    {
+      "name": "A3 · Build components",
+      "command": "a3"
+    },
+    {
+      "name": "A4 · Rebuild screens",
+      "command": "a4"
+    },
+    {
+      "name": "A5 · Add new screens",
+      "command": "a5"
+    },
+    {
+      "name": "A6 · Prototype + QA report",
+      "command": "a6"
+    },
+    {
+      "name": "Export inclusion photos (WebP)",
+      "command": "inclusions"
+    }
   ]
 }

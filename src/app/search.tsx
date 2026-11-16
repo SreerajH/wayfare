@@ -1,4 +1,4 @@
-import { useRouter } from 'expo-router';
+import { useLocalSearchParams, useRouter } from 'expo-router';
 import { useState } from 'react';
 import { FlatList, Pressable, ScrollView, StyleSheet, Text, TextInput, View } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
@@ -9,6 +9,7 @@ import { RemoteImage } from '@/components/wayfare/remote-image';
 import { ListSkeleton } from '@/components/wayfare/skeleton';
 import { CONTINENT_LABELS, Font, Radius, Space, Type, W } from '@/constants/wayfare';
 import { useDestinationList } from '@/hooks/use-destinations';
+import { isSectionKey, rankExperiences, SECTION_META, useRankedExperiences, type SectionKey } from '@/hooks/use-experience-sections';
 import { useSearch, type SearchFilters } from '@/hooks/use-search';
 import type { Enums } from '@/types/database';
 
@@ -22,10 +23,17 @@ type DestinationRowData = {
 
 export default function SearchScreen() {
   const insets = useSafeAreaInsets();
+  // Home's "See all" opens /search?sort=popular|value|rating|short|day
+  const params = useLocalSearchParams<{ sort?: string }>();
+  const [sort, setSort] = useState<SectionKey | undefined>(isSectionKey(params.sort) ? params.sort : undefined);
+  const ranked = useRankedExperiences(sort);
   const [query, setQuery] = useState('');
   const [filters, setFilters] = useState<SearchFilters>({});
   const search = useSearch(query, filters);
   const all = useDestinationList();
+
+  // with a sort active, search results follow the same ranking (and its filters, e.g. day trips only)
+  const experiences = search.data ? (sort ? rankExperiences(search.data.experiences, sort) : search.data.experiences) : [];
 
   const toggle = <K extends keyof SearchFilters>(key: K, value: SearchFilters[K]) =>
     setFilters((f) => ({ ...f, [key]: f[key] === value ? undefined : value }));
@@ -56,6 +64,7 @@ export default function SearchScreen() {
       </View>
 
       <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={styles.chips} style={{ flexGrow: 0 }}>
+        {sort ? <Chip label={`${SECTION_META[sort].title}  ✕`} active onPress={() => setSort(undefined)} /> : null}
         <Chip label="4.5+ rating" active={filters.minRating === 4.5} onPress={() => toggle('minRating', 4.5)} />
         <Chip label="Under $500" active={filters.maxPrice === 500} onPress={() => toggle('maxPrice', 500)} />
         {CONTINENTS.map((c) => (
@@ -64,7 +73,41 @@ export default function SearchScreen() {
       </ScrollView>
 
       <ScrollView contentContainerStyle={[styles.body, { paddingBottom: insets.bottom + Space.xxxl }]} keyboardShouldPersistTaps="handled">
-        {!search.enabled ? (
+        {!search.enabled && sort ? (
+          // "See all" from Home → the full ranked list
+          ranked.isPending ? (
+            <ListSkeleton />
+          ) : ranked.isError ? (
+            <ErrorState onRetry={() => ranked.refetch()} />
+          ) : (
+            <View style={{ gap: Space.lg }}>
+              <View>
+                <SectionHeader title={SECTION_META[sort].title} />
+                <Text style={[Type.caption, { color: W.textSecondary }]}>{SECTION_META[sort].subtitle}</Text>
+              </View>
+              {ranked.data.length === 0 ? (
+                <EmptyState icon="search" title="Nothing here yet" message="New experiences are on the way." />
+              ) : (
+                ranked.data.map((e) => (
+                  <ExperienceCard
+                    key={e.id}
+                    id={e.id}
+                    slug={e.slug}
+                    title={e.title}
+                    place={e.destination ? `${e.destination.name}, ${e.destination.country}` : undefined}
+                    durationDays={e.duration_days}
+                    durationNights={e.duration_nights}
+                    pricePerPerson={e.price_per_person}
+                    currency={e.currency}
+                    coverImageUrl={e.cover_image_url}
+                    rating={e.rating}
+                    reviewCount={e.review_count}
+                  />
+                ))
+              )}
+            </View>
+          )
+        ) : !search.enabled ? (
           // no query yet → browse everything
           all.isPending ? (
             <ListSkeleton />
@@ -82,7 +125,7 @@ export default function SearchScreen() {
           <ListSkeleton />
         ) : search.isError ? (
           <ErrorState onRetry={() => search.refetch()} />
-        ) : search.data && search.data.destinations.length + search.data.experiences.length === 0 ? (
+        ) : search.data && search.data.destinations.length + experiences.length === 0 ? (
           <EmptyState icon="search" title="No matches" message="Try another name, or clear a filter." height={300} />
         ) : search.data ? (
           <View style={{ gap: Space.xxl, opacity: search.isFetching ? 0.6 : 1 }}>
@@ -94,12 +137,12 @@ export default function SearchScreen() {
                 ))}
               </View>
             ) : null}
-            {search.data.experiences.length > 0 ? (
+            {experiences.length > 0 ? (
               <View style={{ gap: Space.lg }}>
-                <SectionHeader title={`Experiences · ${search.data.experiences.length}`} />
+                <SectionHeader title={`Experiences · ${experiences.length}`} />
                 <FlatList
                   scrollEnabled={false}
-                  data={search.data.experiences}
+                  data={experiences}
                   keyExtractor={(e) => e.id}
                   contentContainerStyle={{ gap: Space.lg }}
                   renderItem={({ item: e }) => (
@@ -107,6 +150,7 @@ export default function SearchScreen() {
                       id={e.id}
                       slug={e.slug}
                       title={e.title}
+                      place={e.destination ? `${e.destination.name}, ${e.destination.country}` : undefined}
                       durationDays={e.duration_days}
                       durationNights={e.duration_nights}
                       pricePerPerson={e.price_per_person}

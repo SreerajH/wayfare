@@ -1,6 +1,6 @@
 import { useQuery } from '@tanstack/react-query';
 
-import { EXPERIENCE_CARD_FIELDS } from '@/hooks/use-trending-experiences';
+import { EXPERIENCE_CARD_FIELDS } from '@/hooks/use-experience-sections';
 import { supabase } from '@/lib/supabase';
 
 /** Destination page with its experiences. `data` is null when the slug doesn't exist. */

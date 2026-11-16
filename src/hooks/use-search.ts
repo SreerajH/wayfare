@@ -1,7 +1,7 @@
 import { keepPreviousData, useQuery } from '@tanstack/react-query';
 
 import { useDebouncedValue } from '@/hooks/use-debounced-value';
-import { EXPERIENCE_CARD_FIELDS } from '@/hooks/use-trending-experiences';
+import { EXPERIENCE_CARD_FIELDS } from '@/hooks/use-experience-sections';
 import { supabase } from '@/lib/supabase';
 import type { Enums } from '@/types/database';
 
@@ -38,7 +38,7 @@ export function useSearch(query: string, filters: SearchFilters) {
 
       let eq = supabase
         .from('experiences')
-        .select(`${EXPERIENCE_CARD_FIELDS}, destination:destinations!inner(name, continent)`)
+        .select(`${EXPERIENCE_CARD_FIELDS}, destination:destinations!inner(name, country, continent)`)
         .order('rating', { ascending: false, nullsFirst: false })
         .limit(30);
       if (debounced) eq = eq.ilike('title', like);

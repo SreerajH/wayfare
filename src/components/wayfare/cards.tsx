@@ -71,6 +71,10 @@ type ExperienceCardProps = {
   coverImageUrl: string | null;
   rating: number | null;
   reviewCount: number;
+  /** "Tokyo, Japan" — shown when a row mixes destinations. */
+  place?: string;
+  /** Pill on the photo's top-left (the heart stays top-right). */
+  badge?: { label: string; tone: 'dark' | 'accent' };
   /** Fixed width for horizontal rows; omit to fill the parent. */
   width?: number;
 };
@@ -82,18 +86,33 @@ export function ExperienceCard(p: ExperienceCardProps) {
     <Pressable
       onPress={() => router.push({ pathname: '/experience/[slug]', params: { slug: p.slug } })}
       accessibilityRole="button"
-      accessibilityLabel={p.title}
-      style={({ pressed }) => [styles.expCard, pressed && styles.pressed]}>
-      <RemoteImage uri={p.coverImageUrl} label={p.title} style={styles.expImage} />
-      <View style={styles.expBody}>
-        <Text style={[Type.subheading, { color: W.text }]} numberOfLines={1}>
+      accessibilityLabel={[p.title, p.place, p.badge?.label].filter(Boolean).join(', ')}
+      style={({ pressed }) => [styles.expCard, p.width ? styles.fill : null, pressed && styles.pressed]}>
+      <View>
+        <RemoteImage uri={p.coverImageUrl} label={p.title} style={styles.expImage} />
+        {p.badge ? (
+          <View style={[styles.badge, { backgroundColor: p.badge.tone === 'accent' ? W.accentStrong : W.dark }]}>
+            <Text style={[Type.micro, { color: W.textInverse }]}>{p.badge.label}</Text>
+          </View>
+        ) : null}
+      </View>
+      <View style={[styles.expBody, p.width ? styles.fill : null]}>
+        <Text style={[Type.subheading, { color: W.text }]} numberOfLines={2}>
           {p.title}
         </Text>
-        <Text style={[Type.caption, { color: W.textSecondary }]} numberOfLines={1}>
-          {formatDuration(p.durationDays, p.durationNights)} · from {formatPrice(p.pricePerPerson, p.currency)}/person
+        {p.place ? (
+          <View style={styles.place}>
+            <Icon name="location" size={14} color={W.text} />
+            <Text style={[Type.micro, { color: W.text, flexShrink: 1 }]} numberOfLines={1}>
+              {p.place}
+            </Text>
+          </View>
+        ) : null}
+        <Text style={[Type.caption, { color: W.textSecondary }]}>
+          {formatDuration(p.durationDays, p.durationNights)} · from {formatPrice(p.pricePerPerson, p.currency)} / person
         </Text>
         <View style={[styles.row, styles.expFooter]}>
-          <View style={styles.row}>
+          <View style={[styles.row, styles.footerMeta]}>
             <RatingBadge rating={p.rating} />
             <Text style={[Type.micro, { color: W.textSecondary }]}>{formatReviews(p.reviewCount)}</Text>
           </View>
@@ -157,9 +176,13 @@ const styles = StyleSheet.create({
     gap: Space.md,
   },
   expImage: { height: 150, borderRadius: Radius.sm },
+  badge: { position: 'absolute', top: Space.sm, left: Space.sm, paddingHorizontal: Space.sm, paddingVertical: 4, borderRadius: Radius.pill },
+  place: { flexDirection: 'row', alignItems: 'center', gap: 2 },
+  footerMeta: { flex: 1, flexWrap: 'wrap' },
   expHeart: { position: 'absolute', top: 12, right: 12 },
   expBody: { paddingHorizontal: 4, gap: 4 },
-  expFooter: { justifyContent: 'space-between', marginTop: 4 },
+  // marginTop auto keeps footers aligned when cards in a row have 1- and 2-line titles
+  expFooter: { justifyContent: 'space-between', marginTop: 'auto', paddingTop: 4 },
   darkCircle: {
     width: 40,
     height: 40,

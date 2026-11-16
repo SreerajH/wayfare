@@ -23,6 +23,8 @@ export const ICONS = {
   edit: { ios: 'pencil', android: 'edit', web: 'edit' },
   close: { ios: 'xmark', android: 'close', web: 'close' },
   chevronRight: { ios: 'chevron.right', android: 'chevron_right', web: 'chevron_right' },
+  chevronDown: { ios: 'chevron.down', android: 'keyboard_arrow_down', web: 'keyboard_arrow_down' },
+  copy: { ios: 'doc.on.doc', android: 'content_copy', web: 'content_copy' },
   card: { ios: 'creditcard', android: 'credit_card', web: 'credit_card' },
   lock: { ios: 'lock', android: 'lock', web: 'lock' },
   camera: { ios: 'camera', android: 'photo_camera', web: 'photo_camera' },

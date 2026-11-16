@@ -1,8 +1,12 @@
+import { LinearGradient } from 'expo-linear-gradient';
 import { useLocalSearchParams } from 'expo-router';
-import { ScrollView, StyleSheet, Text, View } from 'react-native';
+import { useState } from 'react';
+import { Pressable, ScrollView, StyleSheet, Text, View } from 'react-native';
+import Animated from 'react-native-reanimated';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
 import { ExperienceCard } from '@/components/wayfare/cards';
+import { ExpandableText, expandLayout } from '@/components/wayfare/expandable-text';
 import { HeartButton } from '@/components/wayfare/heart-button';
 import { BackButton, EmptyState, ErrorState, Icon, RatingBadge, SectionHeader } from '@/components/wayfare/primitives';
 import { RemoteImage } from '@/components/wayfare/remote-image';
@@ -10,11 +14,19 @@ import { DetailSkeleton } from '@/components/wayfare/skeleton';
 import { Radius, Space, Type, W } from '@/constants/wayfare';
 import { formatReviews } from '@/features/catalog/format';
 import { useDestination } from '@/hooks/use-destination';
+import { useScreenStatusBar } from '@/hooks/use-screen-status-bar';
+import { useToast } from '@/providers/toast-provider';
+
+const HERO_HEIGHT = 380;
 
 export default function DestinationScreen() {
   const { slug } = useLocalSearchParams<{ slug: string }>();
   const insets = useSafeAreaInsets();
   const q = useDestination(slug);
+  const toast = useToast();
+  // light ink while the hero photo is behind the status bar, dark once the white sheet reaches it
+  const [pastHero, setPastHero] = useState(false);
+  useScreenStatusBar(pastHero || !q.data ? 'dark' : 'light');
 
   if (q.isPending) {
     return (
@@ -43,9 +55,18 @@ export default function DestinationScreen() {
 
   const d = q.data;
   return (
-    <ScrollView style={styles.screen} contentContainerStyle={{ paddingBottom: insets.bottom + Space.xxxl }}>
+    <ScrollView
+      style={styles.screen}
+      scrollEventThrottle={32}
+      onScroll={(ev) => {
+        const past = ev.nativeEvent.contentOffset.y > HERO_HEIGHT - Space.xxl - insets.top;
+        if (past !== pastHero) setPastHero(past);
+      }}
+      contentContainerStyle={{ paddingBottom: insets.bottom + Space.xxxl }}>
       <View style={styles.hero}>
         <RemoteImage uri={d.hero_image_url} label={d.name} style={StyleSheet.absoluteFill} />
+        {/* status-bar scrim so the time and battery stay readable on bright photos */}
+        <LinearGradient pointerEvents="none" colors={['rgba(0,0,0,0.45)', 'rgba(0,0,0,0)']} style={styles.scrim} />
         <View style={[styles.heroBar, styles.heroBarRow, { top: insets.top + Space.sm }]}>
           <BackButton />
           <HeartButton
@@ -62,18 +83,29 @@ export default function DestinationScreen() {
       <View style={styles.sheet}>
         <View style={styles.grabber} />
         <View style={styles.titleRow}>
-          <Text style={[Type.title, styles.flex, { color: W.text }]}>{d.name}</Text>
+          <Text style={[Type.display, styles.flex, { color: W.text }]}>{d.name}</Text>
           <RatingBadge rating={d.rating} />
         </View>
         <View style={styles.metaRow}>
-          <Icon name="location" size={16} color={W.textSecondary} />
-          <Text style={[Type.caption, { color: W.textSecondary }]}>
-            {d.country} · {formatReviews(d.review_count)}
-          </Text>
+          <View style={styles.location}>
+            <Icon name="location" size={18} color={W.text} />
+            <Text style={[Type.bodyMedium, { color: W.text }]}>{d.country}</Text>
+          </View>
+          <Pressable
+            onPress={() => toast('Reviews coming soon', 'info')}
+            accessibilityRole="button"
+            accessibilityLabel={`${formatReviews(d.review_count)}, read reviews`}
+            hitSlop={8}>
+            <Text style={[Type.bodyMedium, styles.reviews]}>{formatReviews(d.review_count)}</Text>
+          </Pressable>
         </View>
-        {d.description ? <Text style={[Type.bodyMedium, styles.description]}>{d.description}</Text> : null}
+        {d.description ? (
+          <View style={styles.description}>
+            <ExpandableText text={d.description} lines={3} style={{ ...Type.body, color: W.textSecondary }} />
+          </View>
+        ) : null}
 
-        <View style={styles.section}>
+        <Animated.View layout={expandLayout} style={styles.section}>
           <SectionHeader title="Popular experiences" />
           {d.experiences.length === 0 ? (
             <EmptyState height={160} title="No experiences yet" message="New experiences are on the way." />
@@ -94,7 +126,7 @@ export default function DestinationScreen() {
               />
             ))
           )}
-        </View>
+        </Animated.View>
       </View>
     </ScrollView>
   );
@@ -104,7 +136,8 @@ const styles = StyleSheet.create({
   screen: { flex: 1, backgroundColor: W.background },
   padded: { paddingHorizontal: Space.screenX },
   flex: { flex: 1 },
-  hero: { height: 380, backgroundColor: W.dark },
+  hero: { height: HERO_HEIGHT, backgroundColor: W.dark },
+  scrim: { position: 'absolute', top: 0, left: 0, right: 0, height: 120 },
   heroBar: { position: 'absolute', left: Space.screenX - 4 },
   heroBarRow: { right: Space.screenX - 4, flexDirection: 'row', justifyContent: 'space-between' },
   sheet: {
@@ -118,7 +151,9 @@ const styles = StyleSheet.create({
   },
   grabber: { alignSelf: 'center', width: 40, height: 4, borderRadius: Radius.pill, backgroundColor: W.border, marginBottom: Space.sm },
   titleRow: { flexDirection: 'row', alignItems: 'center', gap: Space.sm },
-  metaRow: { flexDirection: 'row', alignItems: 'center', gap: 4 },
-  description: { color: W.textSecondary, marginTop: Space.sm },
+  metaRow: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', gap: Space.md },
+  location: { flexDirection: 'row', alignItems: 'center', gap: 4, flexShrink: 1 },
+  reviews: { color: W.textSecondary, textDecorationLine: 'underline' },
+  description: { marginTop: Space.sm },
   section: { marginTop: Space.xxl, gap: Space.lg },
 });

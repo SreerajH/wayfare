@@ -7,6 +7,7 @@ import { StatusBar } from 'expo-status-bar';
 import { AnimatedSplashOverlay } from '@/components/animated-icon';
 import { CoachMarksProvider } from '@/components/wayfare/coach-marks';
 import { FontFiles, W } from '@/constants/wayfare';
+import { useOtaUpdates } from '@/hooks/use-ota-updates';
 import { queryClient } from '@/lib/query-client';
 import { AuthProvider } from '@/providers/auth-provider';
 import { ToastProvider } from '@/providers/toast-provider';
@@ -17,6 +18,7 @@ export const unstable_settings = { anchor: '(tabs)' };
 
 export default function RootLayout() {
   const [fontsLoaded, fontError] = useFonts(FontFiles);
+  useOtaUpdates();
   // keep the native splash up until Instrument Sans is ready (falls back to system font on error)
   if (!fontsLoaded && !fontError) return null;
 

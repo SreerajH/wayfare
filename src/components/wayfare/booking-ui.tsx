@@ -42,7 +42,7 @@ export function Row({ label, value, strong }: { label: string; value: string; st
   return (
     <View style={styles.row}>
       <Text style={[strong ? Type.subheading : Type.bodyMedium, { color: strong ? W.text : W.textSecondary, flexShrink: 1 }]}>{label}</Text>
-      <Text style={[strong ? Type.subheading : Type.body, { color: W.text }]}>{value}</Text>
+      <Text style={[strong ? Type.subheading : Type.body, { color: W.text, flexShrink: 1, textAlign: 'right' }]}>{value}</Text>
     </View>
   );
 }

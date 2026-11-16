@@ -1,18 +1,47 @@
-import { DarkTheme, DefaultTheme, ThemeProvider } from 'expo-router';
+import { QueryClientProvider } from '@tanstack/react-query';
+import { useFonts } from 'expo-font';
+import { Stack } from 'expo-router';
 import * as SplashScreen from 'expo-splash-screen';
-import { useColorScheme } from 'react-native';
+import { StatusBar } from 'expo-status-bar';
 
 import { AnimatedSplashOverlay } from '@/components/animated-icon';
-import AppTabs from '@/components/app-tabs';
+import { CoachMarksProvider } from '@/components/wayfare/coach-marks';
+import { FontFiles, W } from '@/constants/wayfare';
+import { queryClient } from '@/lib/query-client';
+import { AuthProvider } from '@/providers/auth-provider';
+import { ToastProvider } from '@/providers/toast-provider';
 
 SplashScreen.preventAutoHideAsync();
 
-export default function TabLayout() {
-  const colorScheme = useColorScheme();
+export const unstable_settings = { anchor: '(tabs)' };
+
+export default function RootLayout() {
+  const [fontsLoaded, fontError] = useFonts(FontFiles);
+  // keep the native splash up until Instrument Sans is ready (falls back to system font on error)
+  if (!fontsLoaded && !fontError) return null;
+
   return (
-    <ThemeProvider value={colorScheme === 'dark' ? DarkTheme : DefaultTheme}>
-      <AnimatedSplashOverlay />
-      <AppTabs />
-    </ThemeProvider>
+    <QueryClientProvider client={queryClient}>
+      <AuthProvider>
+        <ToastProvider>
+          <CoachMarksProvider>
+            <StatusBar style="dark" />
+            <Stack screenOptions={{ headerShown: false, contentStyle: { backgroundColor: W.background } }}>
+              <Stack.Screen name="(tabs)" />
+              <Stack.Screen name="onboarding" options={{ animation: 'fade' }} />
+              <Stack.Screen name="sign-in" />
+              <Stack.Screen name="search" options={{ animation: 'fade' }} />
+              <Stack.Screen name="destination/[slug]" />
+              <Stack.Screen name="experience/[slug]" />
+              <Stack.Screen name="book" />
+              <Stack.Screen name="trip" />
+              <Stack.Screen name="profile" />
+              <Stack.Screen name="auth/callback" />
+            </Stack>
+          </CoachMarksProvider>
+          <AnimatedSplashOverlay />
+        </ToastProvider>
+      </AuthProvider>
+    </QueryClientProvider>
   );
 }

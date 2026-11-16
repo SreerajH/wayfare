@@ -1,0 +1,187 @@
+import { useFocusEffect, useRouter } from 'expo-router';
+import { useCallback, useState } from 'react';
+import { FlatList, Pressable, RefreshControl, ScrollView, StyleSheet, Text, View } from 'react-native';
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
+
+import { DestinationCard, ExperienceCard } from '@/components/wayfare/cards';
+import { CoachTarget, useCoachMarks } from '@/components/wayfare/coach-marks';
+import { Chip, EmptyState, ErrorState, Icon, SectionHeader } from '@/components/wayfare/primitives';
+import { CarouselSkeleton, ExperienceRowSkeleton, HomeSkeleton } from '@/components/wayfare/skeleton';
+import { UserAvatar } from '@/components/wayfare/user-avatar';
+import { BottomTabInset } from '@/constants/theme';
+import { CONTINENT_LABELS, Radius, Space, Type, W } from '@/constants/wayfare';
+import { useAvatarUrl } from '@/hooks/use-profile';
+import { useDestinations } from '@/hooks/use-destinations';
+import { useTrendingExperiences } from '@/hooks/use-trending-experiences';
+import { firstNameFor } from '@/lib/names';
+import { useAuth } from '@/providers/auth-provider';
+import type { Enums } from '@/types/database';
+
+type Continent = Enums<'continent'>;
+const CONTINENTS = Object.keys(CONTINENT_LABELS) as Continent[];
+
+export default function HomeScreen() {
+  const insets = useSafeAreaInsets();
+  const router = useRouter();
+  const { profile, session, user } = useAuth();
+  const avatarUrl = useAvatarUrl(profile?.avatar_url);
+  const [continent, setContinent] = useState<Continent | undefined>(undefined);
+  const destinations = useDestinations(continent);
+  const trending = useTrendingExperiences();
+  const [refreshing, setRefreshing] = useState(false);
+  const coach = useCoachMarks();
+
+  const hasCards = !!destinations.data?.length;
+  // first-run tips once the carousel is on screen (no-op after they've been seen)
+  useFocusEffect(
+    useCallback(() => {
+      if (hasCards) coach.start();
+    }, [hasCards, coach]),
+  );
+
+  // first load of the whole screen → full skeleton
+  if (destinations.isPending && trending.isPending && !continent) return <HomeSkeleton />;
+
+  const firstName = session ? firstNameFor(profile?.full_name, user) : null;
+  const onRefresh = async () => {
+    setRefreshing(true);
+    await Promise.all([destinations.refetch(), trending.refetch()]);
+    setRefreshing(false);
+  };
+
+  return (
+    <ScrollView
+      style={styles.screen}
+      refreshControl={<RefreshControl refreshing={refreshing} onRefresh={onRefresh} tintColor={W.accentStrong} />}
+      contentContainerStyle={{ paddingTop: insets.top + Space.sm, paddingBottom: insets.bottom + BottomTabInset + Space.xxl }}>
+      <View style={styles.padded}>
+        <View style={styles.greetingRow}>
+          <View style={{ flex: 1 }}>
+            <Text style={[Type.display, { color: W.text }]} numberOfLines={1}>
+              Hello, {firstName ?? 'traveler'}
+            </Text>
+            <Text style={[Type.bodyMedium, { color: W.textSecondary }]}>Where would you like to go next?</Text>
+          </View>
+          <Pressable
+            onPress={() => router.push(session ? '/more' : { pathname: '/sign-in', params: { returnTo: '/' } })}
+            accessibilityRole="button"
+            accessibilityLabel={session ? 'Your profile' : 'Sign in'}
+            style={styles.avatarHit}>
+            <UserAvatar uri={avatarUrl} name={firstName} />
+          </Pressable>
+        </View>
+
+        <CoachTarget id="search" style={styles.searchWrap}>
+          <Pressable
+            onPress={() => router.push('/search')}
+            accessibilityRole="search"
+            style={({ pressed }) => [styles.search, pressed && { opacity: 0.8 }]}>
+            <Icon name="search" color={W.textSecondary} />
+            <Text style={[Type.bodyMedium, { color: W.textSecondary }]}>Search destinations or experiences</Text>
+          </Pressable>
+        </CoachTarget>
+
+        <Text style={[Type.heading, styles.sectionTitle]}>Select your next trip</Text>
+      </View>
+
+      <CoachTarget id="continents">
+        <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={styles.chips}>
+          <Chip label="All" active={!continent} onPress={() => setContinent(undefined)} />
+          {CONTINENTS.map((c) => (
+            <Chip key={c} label={CONTINENT_LABELS[c]} active={continent === c} onPress={() => setContinent(c)} />
+          ))}
+        </ScrollView>
+      </CoachTarget>
+
+      {destinations.isPending ? (
+        <CarouselSkeleton />
+      ) : destinations.isError ? (
+        <ErrorState height={368} onRetry={() => destinations.refetch()} />
+      ) : destinations.data.length === 0 ? (
+        <EmptyState
+          height={368}
+          icon="location"
+          title={`No ${continent ? CONTINENT_LABELS[continent] : ''} trips yet`}
+          message="We're adding new destinations soon. Try another continent."
+        />
+      ) : (
+        <FlatList
+          horizontal
+          data={destinations.data}
+          keyExtractor={(d) => d.id}
+          showsHorizontalScrollIndicator={false}
+          contentContainerStyle={styles.carousel}
+          renderItem={({ item, index }) => {
+            const card = (
+              <DestinationCard
+                id={item.id}
+                slug={item.slug}
+                name={item.name}
+                country={item.country}
+                heroImageUrl={item.hero_image_url}
+                rating={item.rating}
+                reviewCount={item.review_count}
+              />
+            );
+            return index === 0 ? <CoachTarget id="card">{card}</CoachTarget> : card;
+          }}
+        />
+      )}
+
+      <View style={[styles.padded, styles.trendingHeader]}>
+        <SectionHeader title="Trending experiences" action="View all" onAction={() => router.push('/search')} />
+      </View>
+      {trending.isPending ? (
+        <ExperienceRowSkeleton />
+      ) : trending.isError ? (
+        <ErrorState onRetry={() => trending.refetch()} />
+      ) : trending.data.length === 0 ? (
+        <EmptyState title="Nothing trending right now" message="Check back soon for new experiences." />
+      ) : (
+        <FlatList
+          horizontal
+          data={trending.data}
+          keyExtractor={(e) => e.id}
+          showsHorizontalScrollIndicator={false}
+          contentContainerStyle={styles.carousel}
+          renderItem={({ item }) => (
+            <ExperienceCard
+              width={280}
+              id={item.id}
+              slug={item.slug}
+              title={item.title}
+              durationDays={item.duration_days}
+              durationNights={item.duration_nights}
+              pricePerPerson={item.price_per_person}
+              currency={item.currency}
+              coverImageUrl={item.cover_image_url}
+              rating={item.rating}
+              reviewCount={item.review_count}
+            />
+          )}
+        />
+      )}
+    </ScrollView>
+  );
+}
+
+const styles = StyleSheet.create({
+  screen: { flex: 1, backgroundColor: W.background },
+  padded: { paddingHorizontal: Space.screenX, gap: 4 },
+  greetingRow: { flexDirection: 'row', alignItems: 'center', gap: Space.md },
+  avatarHit: { width: 48, height: 48, alignItems: 'center', justifyContent: 'center' },
+  searchWrap: { marginTop: Space.xl },
+  search: {
+    height: 48,
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: Space.sm,
+    paddingHorizontal: Space.lg,
+    borderRadius: Radius.pill,
+    backgroundColor: W.card,
+  },
+  sectionTitle: { color: W.text, marginTop: Space.xxl },
+  chips: { paddingHorizontal: Space.screenX, gap: Space.sm, paddingVertical: Space.sm },
+  carousel: { paddingHorizontal: Space.screenX, gap: Space.lg },
+  trendingHeader: { marginTop: Space.xxl, marginBottom: Space.sm },
+});

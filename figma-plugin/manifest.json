@@ -1,0 +1,15 @@
+{
+  "name": "Wayfare Builder",
+  "id": "wayfare-builder-local",
+  "api": "1.0.0",
+  "main": "code.js",
+  "editorType": ["figma"],
+  "documentAccess": "dynamic-page",
+  "networkAccess": { "allowedDomains": ["none"] },
+  "menu": [
+    { "name": "A3 · Build components", "command": "a3" },
+    { "name": "A4 · Rebuild screens", "command": "a4" },
+    { "name": "A5 · Add new screens", "command": "a5" },
+    { "name": "A6 · Prototype + QA report", "command": "a6" }
+  ]
+}

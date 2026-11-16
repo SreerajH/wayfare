@@ -61,5 +61,7 @@ export const Spacing = {
   six: 64,
 } as const;
 
-export const BottomTabInset = Platform.select({ ios: 50, android: 80 }) ?? 0;
+/** Floating tab bar: 68 tall + 8 gap above the safe area + breathing room. Add insets.bottom on top of this. */
+export const TabBarHeight = 68;
+export const BottomTabInset = TabBarHeight + 20;
 export const MaxContentWidth = 800;

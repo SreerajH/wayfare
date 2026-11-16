@@ -2530,8 +2530,7 @@ const INCLUSION_IMAGES = [
   { slug: 'tours', label: 'Guided city tours', ids: ['2667:126', '2667:94'] },
   { slug: 'breakfast', label: 'Daily breakfast', ids: ['2667:123'] },
 ];
-const INCLUSION_FRAME_ID = '2645:106';
-const INCLUSION_FRAME_NAME = 'Wayfare / Popular experiences 2';
+
 
 const INCLUSION_UI = '<script>' +
   'const MAX = 150 * 1024;' +
@@ -2569,31 +2568,45 @@ function centerY(n) {
   return b ? b.y + b.height / 2 : 0;
 }
 
-async function findInclusionFrame() {
-  const byId = await figma.getNodeByIdAsync(INCLUSION_FRAME_ID);
-  if (byId && 'findAll' in byId) return byId;
-  await figma.loadAllPagesAsync();
-  const frames = figma.root.findAll(function (n) { return n.type === 'FRAME' && n.name === INCLUSION_FRAME_NAME; });
-  return frames[0] || null;
+function bbox(n) { return n.absoluteBoundingBox || { x: 0, y: 0, width: 0, height: 0 }; }
+
+function dist(a, b) {
+  const A = bbox(a), B = bbox(b);
+  return Math.hypot(A.x + A.width / 2 - (B.x + B.width / 2), A.y + A.height / 2 - (B.y + B.height / 2));
 }
 
-// The image layer for a label: the image-filled node whose vertical centre is closest to the
-// label's text, searched in the nearest ancestor that contains any image.
-function imageNearLabel(frame, label) {
-  const texts = frame.findAll(function (n) { return n.type === 'TEXT' && n.characters.trim().toLowerCase() === label.toLowerCase(); });
+// A photo layer: has an image fill, is thumbnail/card sized, and is not a container with text
+// (that rules out hero/header images that carry the title, back button, etc.).
+function isPhotoCandidate(n) {
+  if (!hasImageFill(n)) return false;
+  const b = bbox(n);
+  if (b.width < 24 || b.height < 24 || b.width > 600 || b.height > 600) return false;
+  return !('findOne' in n && n.findOne(function (c) { return c.type === 'TEXT'; }));
+}
+
+// Look in every page for a text node with this label and take the closest photo in its row/card
+// (searching outward through ancestors, but never past the top-level screen frame).
+async function imageNearLabel(label) {
+  await figma.loadAllPagesAsync();
+  const want = label.toLowerCase();
+  const texts = figma.root.findAll(function (n) { return n.type === 'TEXT' && n.characters.trim().toLowerCase() === want; });
+  let best = null, bestD = Infinity;
   for (const t of texts) {
     let scope = t.parent;
-    while (scope && scope !== frame.parent) {
-      const imgs = 'findAll' in scope ? scope.findAll(hasImageFill) : [];
+    while (scope && scope.type !== 'PAGE' && scope.type !== 'DOCUMENT') {
+      const imgs = 'findAll' in scope ? scope.findAll(isPhotoCandidate) : [];
       if (imgs.length) {
-        const ty = centerY(t);
-        imgs.sort(function (a, b) { return Math.abs(centerY(a) - ty) - Math.abs(centerY(b) - ty); });
-        return imgs[0];
+        for (const img of imgs) {
+          const d = dist(img, t);
+          if (d < bestD && d < 400) { best = img; bestD = d; }
+        }
+        break;
       }
+      if (scope.parent && scope.parent.type === 'PAGE') break;
       scope = scope.parent;
     }
   }
-  return null;
+  return { node: best, labels: texts.length };
 }
 
 async function exportPng(node) {
@@ -2603,7 +2616,8 @@ async function exportPng(node) {
 async function runExportInclusions() {
   const files = [];
   const notes = [];
-  let frame = null;
+  const used = [];
+  const seen = {};
   for (const item of INCLUSION_IMAGES) {
     let bytes = null;
     for (const id of item.ids) {
@@ -2615,20 +2629,23 @@ async function runExportInclusions() {
       }
     }
     if (!bytes) {
-      if (!frame) frame = await findInclusionFrame();
-      if (!frame) {
-        throw new Error('No "' + INCLUSION_FRAME_NAME + '" frame in "' + figma.root.name + '" — open the Web designs file and run again');
+      const found = await imageNearLabel(item.label);
+      if (!found.node) {
+        throw new Error('No photo next to "' + item.label + '" (' + found.labels + ' label(s) found in "' + figma.root.name + '"; ' + notes.join('; ') + ')');
       }
-      const img = imageNearLabel(frame, item.label);
-      if (!img) throw new Error('No image next to "' + item.label + '" in "' + frame.name + '" (' + notes.join('; ') + ')');
-      bytes = await exportPng(img);
+      if (seen[found.node.id]) {
+        throw new Error('"' + item.label + '" and "' + seen[found.node.id] + '" matched the same layer (' + found.node.name + ') — not saving duplicates');
+      }
+      seen[found.node.id] = item.label;
+      bytes = await exportPng(found.node);
+      used.push(item.slug + '←' + found.node.name);
     }
     files.push({ slug: item.slug, bytes: bytes });
   }
   return new Promise(function (resolve, reject) {
     figma.showUI(INCLUSION_UI, { visible: false });
     figma.ui.onmessage = function (msg) {
-      if (msg.ok) resolve('✓ Saved ' + msg.results.length + ' inclusion photos: ' + msg.results.join(', '));
+      if (msg.ok) resolve('✓ Saved ' + msg.results.length + ' inclusion photos: ' + msg.results.join(', ') + (used.length ? ' (matched by label: ' + used.join(', ') + ')' : ''));
       else reject(new Error(msg.error + ' (is the local receiver running?)'));
     };
     figma.ui.postMessage({ files: files });

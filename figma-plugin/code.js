@@ -2525,11 +2525,13 @@ async function runA3() {
 // converts them to WebP (<=150 KB) in the plugin UI, and posts them to a local receiver
 // (http://localhost:4199) that saves supabase/seed-images/inclusions/tokyo-essentials-<slug>.webp.
 const INCLUSION_IMAGES = [
-  { slug: 'accommodation', ids: ['2667:104'] },
-  { slug: 'transport', ids: ['2667:99'] },
-  { slug: 'tours', ids: ['2667:126', '2667:94'] },
-  { slug: 'breakfast', ids: ['2667:123'] },
+  { slug: 'accommodation', label: 'Accommodation', ids: ['2667:104'] },
+  { slug: 'transport', label: 'Local transportation', ids: ['2667:99'] },
+  { slug: 'tours', label: 'Guided city tours', ids: ['2667:126', '2667:94'] },
+  { slug: 'breakfast', label: 'Daily breakfast', ids: ['2667:123'] },
 ];
+const INCLUSION_FRAME_ID = '2645:106';
+const INCLUSION_FRAME_NAME = 'Wayfare / Popular experiences 2';
 
 const INCLUSION_UI = '<script>' +
   'const MAX = 150 * 1024;' +
@@ -2558,20 +2560,69 @@ const INCLUSION_UI = '<script>' +
   '};' +
   '</script>';
 
+function hasImageFill(n) {
+  return 'fills' in n && Array.isArray(n.fills) && n.fills.some(function (f) { return f.type === 'IMAGE' && f.visible !== false; });
+}
+
+function centerY(n) {
+  const b = n.absoluteBoundingBox;
+  return b ? b.y + b.height / 2 : 0;
+}
+
+async function findInclusionFrame() {
+  const byId = await figma.getNodeByIdAsync(INCLUSION_FRAME_ID);
+  if (byId && 'findAll' in byId) return byId;
+  await figma.loadAllPagesAsync();
+  const frames = figma.root.findAll(function (n) { return n.type === 'FRAME' && n.name === INCLUSION_FRAME_NAME; });
+  return frames[0] || null;
+}
+
+// The image layer for a label: the image-filled node whose vertical centre is closest to the
+// label's text, searched in the nearest ancestor that contains any image.
+function imageNearLabel(frame, label) {
+  const texts = frame.findAll(function (n) { return n.type === 'TEXT' && n.characters.trim().toLowerCase() === label.toLowerCase(); });
+  for (const t of texts) {
+    let scope = t.parent;
+    while (scope && scope !== frame.parent) {
+      const imgs = 'findAll' in scope ? scope.findAll(hasImageFill) : [];
+      if (imgs.length) {
+        const ty = centerY(t);
+        imgs.sort(function (a, b) { return Math.abs(centerY(a) - ty) - Math.abs(centerY(b) - ty); });
+        return imgs[0];
+      }
+      scope = scope.parent;
+    }
+  }
+  return null;
+}
+
+async function exportPng(node) {
+  return node.exportAsync({ format: 'PNG', constraint: { type: 'SCALE', value: 2 } });
+}
+
 async function runExportInclusions() {
   const files = [];
+  const notes = [];
+  let frame = null;
   for (const item of INCLUSION_IMAGES) {
     let bytes = null;
     for (const id of item.ids) {
       const node = await figma.getNodeByIdAsync(id);
-      if (node && 'exportAsync' in node) {
-        try {
-          bytes = await node.exportAsync({ format: 'PNG', constraint: { type: 'SCALE', value: 2 } });
-          break;
-        } catch (e) { /* try the fallback id */ }
+      if (node && hasImageFill(node) && 'exportAsync' in node) {
+        try { bytes = await exportPng(node); break; } catch (e) { notes.push(item.slug + ': ' + id + ' export failed'); }
+      } else {
+        notes.push(item.slug + ': ' + id + (node ? ' is ' + node.type + ' without an image' : ' not found'));
       }
     }
-    if (!bytes) throw new Error('Could not find/export the ' + item.slug + ' image layer');
+    if (!bytes) {
+      if (!frame) frame = await findInclusionFrame();
+      if (!frame) {
+        throw new Error('No "' + INCLUSION_FRAME_NAME + '" frame in "' + figma.root.name + '" — open the Web designs file and run again');
+      }
+      const img = imageNearLabel(frame, item.label);
+      if (!img) throw new Error('No image next to "' + item.label + '" in "' + frame.name + '" (' + notes.join('; ') + ')');
+      bytes = await exportPng(img);
+    }
     files.push({ slug: item.slug, bytes: bytes });
   }
   return new Promise(function (resolve, reject) {

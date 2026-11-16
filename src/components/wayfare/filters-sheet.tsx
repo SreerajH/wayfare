@@ -6,7 +6,7 @@ import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { Button } from '@/components/wayfare/controls';
 import { Chip } from '@/components/wayfare/primitives';
 import { RangeSlider } from '@/components/wayfare/range-slider';
-import { Radius, Space, Type, W } from '@/constants/wayfare';
+import { Radius, Space, themedStyles, Type, W } from '@/constants/wayfare';
 import { formatPrice } from '@/features/catalog/format';
 import { useCatalog, type CatalogExperience } from '@/hooks/use-experience-sections';
 import { DURATION_RANGES, type DurationBucket, type SearchFilters } from '@/hooks/use-search';
@@ -128,9 +128,9 @@ function Sheet({ value, query, onApply, onClose }: { value: SearchFilters; query
   );
 }
 
-const styles = StyleSheet.create({
+const styles = themedStyles(() => ({
   root: { flex: 1, justifyContent: 'flex-end' },
-  scrim: { flex: 1, backgroundColor: 'rgba(31, 32, 35, 0.5)' },
+  scrim: { flex: 1, backgroundColor: W.scrim },
   sheet: {
     maxHeight: '88%',
     backgroundColor: W.background,
@@ -149,4 +149,4 @@ const styles = StyleSheet.create({
   group: { gap: Space.sm },
   labelRow: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between' },
   chips: { flexDirection: 'row', flexWrap: 'wrap', gap: Space.sm },
-});
+}));

@@ -2,7 +2,7 @@ import { Image } from 'expo-image';
 import { useState } from 'react';
 import { StyleSheet, Text, View, type StyleProp, type ViewStyle } from 'react-native';
 
-import { Font, W } from '@/constants/wayfare';
+import { currentColorScheme, Font, themedStyles, W } from '@/constants/wayfare';
 
 // Soft grey-green (#D9E6E1) shown while a photo loads — one shared hash until per-image hashes are stored.
 const PLACEHOLDER_BLURHASH = '00O|^I';
@@ -34,7 +34,8 @@ export function RemoteImage({ uri, label, style }: Props) {
     <View style={[styles.loading, style]}>
       <Image
         source={{ uri, headers: /wikimedia\.org/.test(uri) ? WIKIMEDIA_HEADERS : undefined }}
-        placeholder={{ blurhash: PLACEHOLDER_BLURHASH }}
+        // the light grey-green blur would flash in dark mode; there the card colour shows instead
+        placeholder={currentColorScheme() === 'light' ? { blurhash: PLACEHOLDER_BLURHASH } : undefined}
         placeholderContentFit="cover"
         cachePolicy="memory-disk"
         style={StyleSheet.absoluteFill}
@@ -47,7 +48,7 @@ export function RemoteImage({ uri, label, style }: Props) {
   );
 }
 
-const styles = StyleSheet.create({
+const styles = themedStyles(() => ({
   loading: { backgroundColor: W.card, overflow: 'hidden' },
   fallback: {
     backgroundColor: W.card,
@@ -62,4 +63,4 @@ const styles = StyleSheet.create({
     fontSize: 28,
     paddingHorizontal: 12,
   },
-});
+}));

@@ -1,8 +1,8 @@
 import { SymbolView } from 'expo-symbols';
 import { useRouter } from 'expo-router';
-import { ActivityIndicator, Pressable, StyleSheet, Text, View } from 'react-native';
+import { ActivityIndicator, Pressable, Text, View } from 'react-native';
 
-import { Radius, Space, Type, W } from '@/constants/wayfare';
+import { Radius, Space, themedStyles, Type, W } from '@/constants/wayfare';
 
 export const ICONS = {
   back: { ios: 'chevron.left', android: 'arrow_back', web: 'arrow_back' },
@@ -26,6 +26,7 @@ export const ICONS = {
   chevronDown: { ios: 'chevron.down', android: 'keyboard_arrow_down', web: 'keyboard_arrow_down' },
   copy: { ios: 'doc.on.doc', android: 'content_copy', web: 'content_copy' },
   bell: { ios: 'bell', android: 'notifications', web: 'notifications' },
+  moon: { ios: 'moon', android: 'dark_mode', web: 'dark_mode' },
   filter: { ios: 'slider.horizontal.3', android: 'tune', web: 'tune' },
   star: { ios: 'star.fill', android: 'star', web: 'star' },
   ticket: { ios: 'ticket', android: 'confirmation_number', web: 'confirmation_number' },
@@ -54,7 +55,7 @@ export function Chip({ label, active, onPress }: { label: string; active: boolea
       accessibilityState={{ selected: active }}
       style={styles.chipHit}>
       <View style={[styles.chip, active ? styles.chipActive : styles.chipInactive]}>
-        <Text style={[Type.bodyMedium, { color: active ? W.textInverse : W.textSecondary }]}>{label}</Text>
+        <Text style={[Type.bodyMedium, { color: active ? W.onSelected : W.textSecondary }]}>{label}</Text>
       </View>
     </Pressable>
   );
@@ -140,10 +141,10 @@ export function EmptyState({ title, message, height = 200, icon, actionLabel, on
   );
 }
 
-const styles = StyleSheet.create({
+const styles = themedStyles(() => ({
   chipHit: { paddingVertical: 4 },
   chip: { height: 36, paddingHorizontal: Space.lg, borderRadius: Radius.pill, justifyContent: 'center' },
-  chipActive: { backgroundColor: W.dark },
+  chipActive: { backgroundColor: W.selected },
   chipInactive: { backgroundColor: W.card },
   rating: {
     flexDirection: 'row',
@@ -185,7 +186,7 @@ const styles = StyleSheet.create({
     height: 44,
     paddingHorizontal: Space.xxl,
     borderRadius: Radius.pill,
-    backgroundColor: W.accentStrong,
+    backgroundColor: W.accentFill,
     justifyContent: 'center',
   },
-});
+}));

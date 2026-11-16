@@ -1,7 +1,7 @@
 import { useMemo, useState } from 'react';
 import { PanResponder, StyleSheet, View, type LayoutChangeEvent } from 'react-native';
 
-import { Radius, W } from '@/constants/wayfare';
+import { Radius, themedStyles, W } from '@/constants/wayfare';
 
 const THUMB = 28;
 const HIT = 44;
@@ -84,7 +84,7 @@ export function RangeSlider({ min, max, step, value, onChange, format }: Props) 
   );
 }
 
-const styles = StyleSheet.create({
+const styles = themedStyles(() => ({
   row: { height: HIT, justifyContent: 'center' },
   track: { position: 'absolute', left: THUMB / 2, right: THUMB / 2, top: HIT / 2 - 2, height: 4, borderRadius: Radius.pill, backgroundColor: W.border },
   range: { position: 'absolute', top: HIT / 2 - 2, height: 4, borderRadius: Radius.pill, backgroundColor: W.accentStrong },
@@ -99,4 +99,4 @@ const styles = StyleSheet.create({
     borderColor: W.accentStrong,
     boxShadow: '0 2px 8px rgba(0, 0, 0, 0.12)',
   },
-});
+}));

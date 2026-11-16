@@ -1,11 +1,11 @@
 import { useLocalSearchParams, useRouter } from 'expo-router';
 import { useState } from 'react';
-import { Pressable, StyleSheet, Text, View } from 'react-native';
+import { Pressable, Text, View } from 'react-native';
 
 import { BookingScaffold, Card, Row } from '@/components/wayfare/booking-ui';
 import { Button } from '@/components/wayfare/controls';
 import { ErrorState, Icon, LoadingState } from '@/components/wayfare/primitives';
-import { Radius, Space, Type, W } from '@/constants/wayfare';
+import { Radius, Space, themedStyles, Type, W } from '@/constants/wayfare';
 import { MockPaymentProvider } from '@/features/booking/payment';
 import { useCreateBooking, useQuote } from '@/hooks/use-bookings';
 import { useExperience } from '@/hooks/use-experience';
@@ -97,10 +97,10 @@ export default function PaymentScreen() {
   );
 }
 
-const styles = StyleSheet.create({
+const styles = themedStyles(() => ({
   option: { flexDirection: 'row', alignItems: 'center', gap: Space.md, padding: Space.lg, borderRadius: Radius.card, borderWidth: 1, borderColor: W.border },
   selected: { borderColor: W.accentStrong, borderWidth: 1.5, backgroundColor: W.accentSoft },
   iconCircle: { width: 44, height: 44, borderRadius: Radius.pill, backgroundColor: W.background, alignItems: 'center', justifyContent: 'center' },
   radioOn: { width: 22, height: 22, borderRadius: 11, borderWidth: 2, borderColor: W.accentStrong, alignItems: 'center', justifyContent: 'center' },
   radioDot: { width: 12, height: 12, borderRadius: 6, backgroundColor: W.accentStrong },
-});
+}));

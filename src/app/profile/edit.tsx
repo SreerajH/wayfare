@@ -1,13 +1,13 @@
 import * as ImagePicker from 'expo-image-picker';
 import { useRouter } from 'expo-router';
 import { useState } from 'react';
-import { KeyboardAvoidingView, Platform, Pressable, ScrollView, StyleSheet, Text, View } from 'react-native';
+import { KeyboardAvoidingView, Platform, Pressable, ScrollView, Text, View } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
 import { Button, TextField } from '@/components/wayfare/controls';
 import { BackButton, Icon, LoadingState } from '@/components/wayfare/primitives';
 import { RemoteImage } from '@/components/wayfare/remote-image';
-import { Radius, Space, Type, W } from '@/constants/wayfare';
+import { Radius, Space, themedStyles, Type, W } from '@/constants/wayfare';
 import { useAvatarUrl, useUpdateProfile, useUploadAvatar } from '@/hooks/use-profile';
 import { readableError } from '@/lib/errors';
 import { firstNameFor } from '@/lib/names';
@@ -103,7 +103,7 @@ function EditProfileForm({ profile }: { profile: Tables<'profiles'> }) {
   );
 }
 
-const styles = StyleSheet.create({
+const styles = themedStyles(() => ({
   screen: { flex: 1, backgroundColor: W.background },
   content: { paddingHorizontal: Space.screenX, gap: Space.xl },
   header: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', marginLeft: -4 },
@@ -117,11 +117,11 @@ const styles = StyleSheet.create({
     width: 36,
     height: 36,
     borderRadius: Radius.pill,
-    backgroundColor: W.accentStrong,
+    backgroundColor: W.accentFill,
     borderWidth: 2,
     borderColor: W.background,
     alignItems: 'center',
     justifyContent: 'center',
   },
   changePhoto: { alignSelf: 'center', minHeight: 44, justifyContent: 'center', marginTop: -Space.md },
-});
+}));

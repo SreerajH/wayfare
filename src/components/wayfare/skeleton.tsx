@@ -1,8 +1,8 @@
 import { useEffect, useState } from 'react';
-import { Animated, ScrollView, StyleSheet, View, type DimensionValue, type StyleProp, type ViewStyle } from 'react-native';
+import { Animated, ScrollView, View, type DimensionValue, type StyleProp, type ViewStyle } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
-import { Radius, Space, W } from '@/constants/wayfare';
+import { Radius, Space, themedStyles, W } from '@/constants/wayfare';
 
 /** Grey block (surface/card) with a gentle pulse — the Figma "Homepage Loading" style. */
 export function Bone({ w, h, r = Radius.sm, style }: { w: DimensionValue; h: number; r?: number; style?: StyleProp<ViewStyle> }) {
@@ -127,7 +127,7 @@ export function GridSkeleton() {
   );
 }
 
-const styles = StyleSheet.create({
+const styles = themedStyles(() => ({
   screen: { flex: 1, backgroundColor: W.background },
   padded: { paddingHorizontal: Space.screenX },
   row: { flexDirection: 'row', alignItems: 'center', gap: Space.sm },
@@ -142,4 +142,4 @@ const styles = StyleSheet.create({
     paddingTop: Space.md,
   },
   grid: { flexDirection: 'row', flexWrap: 'wrap', gap: Space.lg, justifyContent: 'space-between' },
-});
+}));

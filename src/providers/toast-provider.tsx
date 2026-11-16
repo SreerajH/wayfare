@@ -1,8 +1,8 @@
 import { createContext, useCallback, useContext, useEffect, useState, type ReactNode } from 'react';
-import { Animated, StyleSheet, Text } from 'react-native';
+import { Animated, Text } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
-import { Radius, Space, Type, W } from '@/constants/wayfare';
+import { Radius, Space, themedStyles, Type, W } from '@/constants/wayfare';
 
 type Toast = { id: number; message: string; tone: 'error' | 'info' };
 const ToastContext = createContext<(message: string, tone?: Toast['tone']) => void>(() => {});
@@ -44,7 +44,7 @@ export function useToast() {
   return useContext(ToastContext);
 }
 
-const styles = StyleSheet.create({
+const styles = themedStyles(() => ({
   toast: {
     position: 'absolute',
     left: Space.screenX,
@@ -54,5 +54,5 @@ const styles = StyleSheet.create({
     borderRadius: Radius.card,
     backgroundColor: W.dark,
   },
-  error: { backgroundColor: '#B42318' },
-});
+  error: { backgroundColor: W.error },
+}));

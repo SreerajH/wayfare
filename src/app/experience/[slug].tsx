@@ -11,12 +11,12 @@ import { RatingSummary, ReviewCard } from '@/components/wayfare/reviews';
 import { BackButton, Chip, EmptyState, ErrorState, Icon, ICONS, LoadingState } from '@/components/wayfare/primitives';
 import { RemoteImage } from '@/components/wayfare/remote-image';
 import { DetailSkeleton } from '@/components/wayfare/skeleton';
-import { Radius, Space, Type, W } from '@/constants/wayfare';
+import { Radius, Space, themedStyles, Type, W } from '@/constants/wayfare';
 import { formatDuration, formatPrice } from '@/features/catalog/format';
 import { useExperience } from '@/hooks/use-experience';
 import { useRequireAuth } from '@/hooks/use-require-auth';
 import { useReviews } from '@/hooks/use-reviews';
-import { useScreenStatusBar } from '@/hooks/use-screen-status-bar';
+import { defaultStatusBarStyle, useScreenStatusBar } from '@/hooks/use-screen-status-bar';
 
 const BAR_HEIGHT = 76;
 /** photo height below the status bar */
@@ -33,7 +33,7 @@ export default function ExperienceScreen() {
   const requireAuth = useRequireAuth();
   const q = useExperience(slug);
   const [tab, setTab] = useState<'itinerary' | 'included' | 'reviews'>('itinerary');
-  useScreenStatusBar(q.data ? 'light' : 'dark');
+  useScreenStatusBar(q.data ? 'light' : defaultStatusBarStyle());
 
   // the header is pinned outside the scroll view (always below insets.top) and turns solid once the photo scrolls away
   const scrollY = useSharedValue(0);
@@ -207,7 +207,7 @@ function ExperienceReviews({ id, rating, count }: { id: string; rating: number |
   );
 }
 
-const styles = StyleSheet.create({
+const styles = themedStyles(() => ({
   screen: { flex: 1, backgroundColor: W.background },
   flex: { flex: 1, gap: 2 },
   inverse: { color: W.textInverse },
@@ -285,7 +285,7 @@ const styles = StyleSheet.create({
     height: 52,
     paddingHorizontal: Space.xxl,
     borderRadius: Radius.pill,
-    backgroundColor: W.accentStrong,
+    backgroundColor: W.accentFill,
     justifyContent: 'center',
   },
-});
+}));

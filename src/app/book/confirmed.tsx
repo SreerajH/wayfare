@@ -22,7 +22,7 @@ import { scheduleOnRN } from 'react-native-worklets';
 import { Row } from '@/components/wayfare/booking-ui';
 import { Button } from '@/components/wayfare/controls';
 import { Icon } from '@/components/wayfare/primitives';
-import { Radius, Space, Type, W } from '@/constants/wayfare';
+import { Radius, Space, themedStyles, Type, W } from '@/constants/wayfare';
 import { formatRange } from '@/lib/dates';
 import { useToast } from '@/providers/toast-provider';
 
@@ -151,7 +151,7 @@ export default function ConfirmedScreen() {
   );
 }
 
-const styles = StyleSheet.create({
+const styles = themedStyles(() => ({
   screen: { flex: 1, backgroundColor: W.background, paddingHorizontal: Space.screenX, justifyContent: 'space-between' },
   center: { alignItems: 'center', gap: Space.lg },
   markWrap: { width: CIRCLE, height: CIRCLE, alignItems: 'center', justifyContent: 'center', marginBottom: Space.sm },
@@ -162,4 +162,4 @@ const styles = StyleSheet.create({
   codeRow: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', gap: Space.md },
   codeValue: { flexDirection: 'row', alignItems: 'center', gap: 2 },
   copy: { width: 36, height: 36, alignItems: 'center', justifyContent: 'center', marginRight: -Space.sm },
-});
+}));

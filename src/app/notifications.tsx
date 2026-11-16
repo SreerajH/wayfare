@@ -4,7 +4,7 @@ import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
 import { BackButton, EmptyState, ErrorState, Icon } from '@/components/wayfare/primitives';
 import { ListSkeleton } from '@/components/wayfare/skeleton';
-import { Radius, Space, Type, W } from '@/constants/wayfare';
+import { Radius, Space, themedStyles, Type, W } from '@/constants/wayfare';
 import { isToday, relativeTime, useMarkNotificationsRead, useNotifications, type AppNotification } from '@/hooks/use-notifications';
 import { useAuth } from '@/providers/auth-provider';
 
@@ -96,7 +96,7 @@ function NotificationRow({ item, unread, last }: { item: AppNotification; unread
   );
 }
 
-const styles = StyleSheet.create({
+const styles = themedStyles(() => ({
   screen: { flex: 1, backgroundColor: W.background },
   header: { flexDirection: 'row', alignItems: 'center', gap: Space.md, paddingHorizontal: Space.screenX - 4 },
   title: { flex: 1, textAlign: 'center', color: W.text },
@@ -110,4 +110,4 @@ const styles = StyleSheet.create({
   iconCircle: { width: 44, height: 44, borderRadius: Radius.pill, backgroundColor: W.accentSoft, alignItems: 'center', justifyContent: 'center' },
   text: { flex: 1, gap: 2 },
   unread: { width: 8, height: 8, borderRadius: Radius.pill, backgroundColor: W.accent, marginTop: 8 },
-});
+}));

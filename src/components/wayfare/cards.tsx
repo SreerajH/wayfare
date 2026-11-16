@@ -5,7 +5,7 @@ import { Pressable, StyleSheet, Text, View } from 'react-native';
 import { HeartButton } from '@/components/wayfare/heart-button';
 import { Icon, RatingBadge } from '@/components/wayfare/primitives';
 import { RemoteImage } from '@/components/wayfare/remote-image';
-import { Radius, Space, Type, W } from '@/constants/wayfare';
+import { Radius, Space, themedStyles, Type, W } from '@/constants/wayfare';
 import { formatDuration, formatPrice, formatReviews } from '@/features/catalog/format';
 
 type DestinationCardProps = {
@@ -91,7 +91,7 @@ export function ExperienceCard(p: ExperienceCardProps) {
       <View>
         <RemoteImage uri={p.coverImageUrl} label={p.title} style={styles.expImage} />
         {p.badge ? (
-          <View style={[styles.badge, { backgroundColor: p.badge.tone === 'accent' ? W.accentStrong : W.dark }]}>
+          <View style={[styles.badge, { backgroundColor: p.badge.tone === 'accent' ? W.accentFill : W.dark }]}>
             <Text style={[Type.micro, { color: W.textInverse }]}>{p.badge.label}</Text>
           </View>
         ) : null}
@@ -139,7 +139,7 @@ export function ExperienceCard(p: ExperienceCardProps) {
   );
 }
 
-const styles = StyleSheet.create({
+const styles = themedStyles(() => ({
   pressed: { opacity: 0.85 },
   fill: { flex: 1 },
   row: { flexDirection: 'row', alignItems: 'center', gap: Space.sm },
@@ -191,4 +191,4 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     justifyContent: 'center',
   },
-});
+}));

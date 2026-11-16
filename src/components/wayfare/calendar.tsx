@@ -1,8 +1,8 @@
 import { useMemo, useState } from 'react';
-import { Pressable, StyleSheet, Text, View } from 'react-native';
+import { Pressable, Text, View } from 'react-native';
 
 import { Icon } from '@/components/wayfare/primitives';
-import { Radius, Space, Type, W } from '@/constants/wayfare';
+import { Radius, Space, themedStyles, Type, W } from '@/constants/wayfare';
 import { addDays, parseISODate, toISODate } from '@/lib/dates';
 
 const WEEKDAYS = ['S', 'M', 'T', 'W', 'T', 'F', 'S'];
@@ -94,7 +94,7 @@ function NavButton({ label, icon, disabled, onPress }: { label: string; icon: 'b
   );
 }
 
-const styles = StyleSheet.create({
+const styles = themedStyles(() => ({
   card: { borderWidth: 1, borderColor: W.border, borderRadius: Radius.card, padding: Space.md, gap: 2 },
   header: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', marginBottom: Space.xs },
   nav: { width: 44, height: 44, alignItems: 'center', justifyContent: 'center' },
@@ -103,5 +103,5 @@ const styles = StyleSheet.create({
   cell: { flex: 1, height: 44, alignItems: 'center', justifyContent: 'center' },
   band: { backgroundColor: W.accentSoft },
   day: { width: 40, height: 40, borderRadius: Radius.pill, alignItems: 'center', justifyContent: 'center' },
-  edge: { backgroundColor: W.accentStrong },
-});
+  edge: { backgroundColor: W.accentFill },
+}));

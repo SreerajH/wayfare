@@ -8,7 +8,7 @@ import { Button, ConfirmDialog, StatusBadge } from '@/components/wayfare/control
 import { BackButton, EmptyState, ErrorState, Icon } from '@/components/wayfare/primitives';
 import { RemoteImage } from '@/components/wayfare/remote-image';
 import { DetailSkeleton } from '@/components/wayfare/skeleton';
-import { Radius, Space, Type, W } from '@/constants/wayfare';
+import { Radius, Space, themedStyles, Type, W } from '@/constants/wayfare';
 import { isUpcoming, useBooking, useCancelBooking } from '@/hooks/use-bookings';
 import { useExperience } from '@/hooks/use-experience';
 import { daysBetweenInclusive, formatRange } from '@/lib/dates';
@@ -128,7 +128,7 @@ function Line({ icon, text }: { icon: 'calendar' | 'people'; text: string }) {
   );
 }
 
-const styles = StyleSheet.create({
+const styles = themedStyles(() => ({
   screen: { flex: 1, backgroundColor: W.background },
   hero: { height: 260, backgroundColor: W.dark },
   heroBar: { position: 'absolute', left: Space.screenX - 4 },
@@ -144,4 +144,4 @@ const styles = StyleSheet.create({
   titleRow: { flexDirection: 'row', alignItems: 'center', gap: Space.sm },
   day: { flexDirection: 'row', alignItems: 'center', gap: Space.md },
   dayPill: { paddingVertical: 4, paddingHorizontal: Space.sm, borderRadius: Radius.pill, backgroundColor: W.accentSoft },
-});
+}));

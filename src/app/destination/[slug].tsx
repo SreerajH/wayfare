@@ -12,10 +12,10 @@ import { HeartButton } from '@/components/wayfare/heart-button';
 import { BackButton, EmptyState, ErrorState, Icon, RatingBadge, SectionHeader } from '@/components/wayfare/primitives';
 import { RemoteImage } from '@/components/wayfare/remote-image';
 import { DetailSkeleton } from '@/components/wayfare/skeleton';
-import { Radius, Space, Type, W } from '@/constants/wayfare';
+import { Radius, Space, themedStyles, Type, W } from '@/constants/wayfare';
 import { formatReviews } from '@/features/catalog/format';
 import { useDestination } from '@/hooks/use-destination';
-import { useScreenStatusBar } from '@/hooks/use-screen-status-bar';
+import { defaultStatusBarStyle, useScreenStatusBar } from '@/hooks/use-screen-status-bar';
 
 const HERO_HEIGHT = 380;
 
@@ -28,7 +28,7 @@ export default function DestinationScreen() {
   const [reviewsY, setReviewsY] = useState(0);
   // light ink while the hero photo is behind the status bar, dark once the white sheet reaches it
   const [pastHero, setPastHero] = useState(false);
-  useScreenStatusBar(pastHero || !q.data ? 'dark' : 'light');
+  useScreenStatusBar(pastHero || !q.data ? defaultStatusBarStyle() : 'light');
 
   if (q.isPending) {
     return (
@@ -139,7 +139,7 @@ export default function DestinationScreen() {
   );
 }
 
-const styles = StyleSheet.create({
+const styles = themedStyles(() => ({
   screen: { flex: 1, backgroundColor: W.background },
   padded: { paddingHorizontal: Space.screenX },
   flex: { flex: 1 },
@@ -165,4 +165,4 @@ const styles = StyleSheet.create({
   section: { marginTop: Space.xxl, gap: Space.lg },
   // the review cards scroll edge to edge, so undo the sheet's side padding
   reviewsBlock: { marginTop: Space.xxxl, marginHorizontal: -Space.screenX },
-});
+}));

@@ -1,6 +1,6 @@
 import { useLocalSearchParams, useRouter } from 'expo-router';
 import { useState } from 'react';
-import { FlatList, Pressable, ScrollView, StyleSheet, Text, TextInput, View } from 'react-native';
+import { FlatList, Pressable, ScrollView, Text, TextInput, View } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
 import { ExperienceCard } from '@/components/wayfare/cards';
@@ -8,7 +8,7 @@ import { activeFilterCount, FiltersSheet } from '@/components/wayfare/filters-sh
 import { BackButton, Chip, EmptyState, ErrorState, Icon, RatingBadge, SectionHeader } from '@/components/wayfare/primitives';
 import { RemoteImage } from '@/components/wayfare/remote-image';
 import { ListSkeleton } from '@/components/wayfare/skeleton';
-import { CONTINENT_LABELS, Font, Radius, Space, Type, W } from '@/constants/wayfare';
+import { CONTINENT_LABELS, Font, Radius, Space, themedStyles, Type, W } from '@/constants/wayfare';
 import { useDestinationList } from '@/hooks/use-destinations';
 import { isSectionKey, rankExperiences, SECTION_META, useRankedExperiences, type SectionKey } from '@/hooks/use-experience-sections';
 import { useSearch, type SearchFilters } from '@/hooks/use-search';
@@ -221,7 +221,7 @@ function DestinationRow({ d }: { d: DestinationRowData }) {
   );
 }
 
-const styles = StyleSheet.create({
+const styles = themedStyles(() => ({
   screen: { flex: 1, backgroundColor: W.background },
   searchRow: { flexDirection: 'row', alignItems: 'center', gap: Space.sm, paddingHorizontal: Space.screenX - 4 },
   searchBox: {
@@ -243,7 +243,7 @@ const styles = StyleSheet.create({
     height: 20,
     paddingHorizontal: 4,
     borderRadius: Radius.pill,
-    backgroundColor: W.accentStrong,
+    backgroundColor: W.accentFill,
     borderWidth: 2,
     borderColor: W.background,
     alignItems: 'center',
@@ -255,4 +255,4 @@ const styles = StyleSheet.create({
   row: { flexDirection: 'row', alignItems: 'center', gap: Space.lg, paddingVertical: Space.sm },
   thumb: { width: 72, height: 72, borderRadius: Radius.card },
   meta: { flexDirection: 'row', alignItems: 'center', gap: Space.sm },
-});
+}));

@@ -1,11 +1,11 @@
 import { useLocalSearchParams, useRouter, type Href } from 'expo-router';
 import { useEffect, useRef, useState, type ComponentRef } from 'react';
-import { KeyboardAvoidingView, Platform, Pressable, ScrollView, StyleSheet, Text, TextInput, View } from 'react-native';
+import { KeyboardAvoidingView, Platform, Pressable, ScrollView, Text, TextInput, View } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
 import { Button, TextField } from '@/components/wayfare/controls';
 import { BackButton, Icon } from '@/components/wayfare/primitives';
-import { Font, Radius, Space, Type, W } from '@/constants/wayfare';
+import { Font, Radius, Space, themedStyles, Type, W } from '@/constants/wayfare';
 import { readableError } from '@/lib/errors';
 import { authRedirectUri, signInWithGoogle } from '@/lib/google-auth';
 import { markOnboardingSeen, setAuthReturnTo } from '@/lib/onboarding';
@@ -246,7 +246,7 @@ function OtpStep({ email, onResend }: { email: string; onResend: () => Promise<v
   );
 }
 
-const styles = StyleSheet.create({
+const styles = themedStyles(() => ({
   screen: { flex: 1, backgroundColor: W.background },
   content: { paddingHorizontal: Space.screenX, gap: Space.xxl, flexGrow: 1 },
   backHit: { width: 44, height: 44, alignItems: 'center', justifyContent: 'center' },
@@ -281,4 +281,4 @@ const styles = StyleSheet.create({
     color: W.text,
   },
   codeBoxFilled: { borderColor: W.accentStrong, backgroundColor: W.background },
-});
+}));

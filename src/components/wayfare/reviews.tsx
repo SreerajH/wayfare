@@ -1,9 +1,9 @@
 import { useRouter } from 'expo-router';
-import { FlatList, Pressable, StyleSheet, Text, View } from 'react-native';
+import { FlatList, Pressable, Text, View } from 'react-native';
 
 import { Bone } from '@/components/wayfare/skeleton';
 import { SectionHeader } from '@/components/wayfare/primitives';
-import { Radius, Space, Type, W } from '@/constants/wayfare';
+import { Radius, Space, themedStyles, Type, W } from '@/constants/wayfare';
 import { formatReviews } from '@/features/catalog/format';
 import { useReviews, type Review, type ReviewTarget } from '@/hooks/use-reviews';
 
@@ -122,7 +122,7 @@ export function ReviewsSection({ target, slug, rating, count }: { target: Review
   );
 }
 
-const styles = StyleSheet.create({
+const styles = themedStyles(() => ({
   section: { gap: Space.md },
   padded: { paddingHorizontal: Space.screenX, gap: Space.md },
   row: { flexDirection: 'row', gap: Space.md },
@@ -142,4 +142,4 @@ const styles = StyleSheet.create({
   ratingRow: { flexDirection: 'row', alignItems: 'center', gap: Space.sm },
   avatar: { width: 40, height: 40, borderRadius: Radius.pill, backgroundColor: W.accentSoft, alignItems: 'center', justifyContent: 'center' },
   tag: { alignSelf: 'flex-start', marginTop: 'auto', paddingHorizontal: Space.sm, paddingVertical: 4, borderRadius: Radius.pill, backgroundColor: W.card },
-});
+}));

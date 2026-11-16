@@ -1,6 +1,6 @@
 import { useRouter } from 'expo-router';
 import { useState } from 'react';
-import { Pressable, ScrollView, StyleSheet, Text, View } from 'react-native';
+import { Pressable, ScrollView, Text, View } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import Constants from 'expo-constants';
 
@@ -10,12 +10,14 @@ import { Icon, type ICONS } from '@/components/wayfare/primitives';
 import { SignInPrompt } from '@/components/wayfare/sign-in-prompt';
 import { UserAvatar } from '@/components/wayfare/user-avatar';
 import { BottomTabInset } from '@/constants/theme';
-import { Radius, Space, Type, W } from '@/constants/wayfare';
+import { Radius, Space, themedStyles, Type, W } from '@/constants/wayfare';
 import { useAvatarUrl } from '@/hooks/use-profile';
 import { readableError } from '@/lib/errors';
 import { firstNameFor } from '@/lib/names';
 import { useAuth } from '@/providers/auth-provider';
+import { useTheme } from '@/providers/theme-provider';
 import { useToast } from '@/providers/toast-provider';
+import type { AppearancePreference } from '@/lib/appearance';
 
 export default function ProfileScreen() {
   const insets = useSafeAreaInsets();
@@ -75,6 +77,8 @@ export default function ProfileScreen() {
         </View>
       </View>
 
+      <AppearanceCard />
+
       <View style={styles.list}>
         <Row icon="user" label="Edit profile" onPress={() => router.push('/profile/edit')} />
         <Row icon="calendar" label="My trips" onPress={() => router.push('/trips')} />
@@ -106,6 +110,43 @@ export default function ProfileScreen() {
   );
 }
 
+const APPEARANCE: { value: AppearancePreference; label: string }[] = [
+  { value: 'system', label: 'System' },
+  { value: 'light', label: 'Light' },
+  { value: 'dark', label: 'Dark' },
+];
+
+/** System / Light / Dark — applies instantly and is remembered on this device. */
+function AppearanceCard() {
+  const { appearance, setAppearance } = useTheme();
+  return (
+    <View style={styles.appearance}>
+      <View style={styles.appearanceHead}>
+        <Icon name="moon" />
+        <Text style={[Type.body, { color: W.text, flex: 1 }]}>Appearance</Text>
+      </View>
+      <View style={styles.segment} accessibilityRole="radiogroup" accessibilityLabel="Appearance">
+        {APPEARANCE.map((o) => {
+          const on = appearance === o.value;
+          return (
+            <Pressable
+              key={o.value}
+              onPress={() => setAppearance(o.value)}
+              accessibilityRole="radio"
+              accessibilityState={{ checked: on }}
+              style={[styles.segmentItem, on && styles.segmentOn]}>
+              <Text style={[Type.bodyMedium, { color: on ? W.onSelected : W.textSecondary }]}>{o.label}</Text>
+            </Pressable>
+          );
+        })}
+      </View>
+      <Text style={[Type.caption, { color: W.textSecondary }]}>
+        {appearance === 'system' ? 'Matches your phone’s light or dark setting.' : 'Dark uses soft graphite tones that are easy on the eyes at night.'}
+      </Text>
+    </View>
+  );
+}
+
 function Row({ icon, label, onPress, last }: { icon: keyof typeof ICONS; label: string; onPress: () => void; last?: boolean }) {
   return (
     <Pressable onPress={onPress} accessibilityRole="button" style={[styles.row, !last && styles.divider]}>
@@ -116,7 +157,7 @@ function Row({ icon, label, onPress, last }: { icon: keyof typeof ICONS; label: 
   );
 }
 
-const styles = StyleSheet.create({
+const styles = themedStyles(() => ({
   screen: { flex: 1, backgroundColor: W.background },
   profile: { flexDirection: 'row', alignItems: 'center', gap: Space.lg },
   editLink: { minHeight: 32, justifyContent: 'center', alignSelf: 'flex-start' },
@@ -124,4 +165,9 @@ const styles = StyleSheet.create({
   row: { minHeight: 56, flexDirection: 'row', alignItems: 'center', gap: Space.lg },
   divider: { borderBottomWidth: 1, borderBottomColor: W.border },
   version: { color: W.textSecondary, textAlign: 'center' },
-});
+  appearance: { borderRadius: Radius.card, borderWidth: 1, borderColor: W.border, padding: Space.lg, gap: Space.md },
+  appearanceHead: { flexDirection: 'row', alignItems: 'center', gap: Space.lg },
+  segment: { flexDirection: 'row', padding: 4, borderRadius: Radius.pill, backgroundColor: W.card },
+  segmentItem: { flex: 1, height: 40, borderRadius: Radius.pill, alignItems: 'center', justifyContent: 'center' },
+  segmentOn: { backgroundColor: W.selected },
+}));

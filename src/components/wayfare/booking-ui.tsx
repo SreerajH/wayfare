@@ -1,10 +1,10 @@
 import type { ReactNode } from 'react';
-import { ScrollView, StyleSheet, Text, View } from 'react-native';
+import { ScrollView, Text, View } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
 import { BackButton } from '@/components/wayfare/primitives';
 import { RemoteImage } from '@/components/wayfare/remote-image';
-import { Radius, Space, Type, W } from '@/constants/wayfare';
+import { Radius, Space, themedStyles, Type, W } from '@/constants/wayfare';
 import { formatDuration } from '@/features/catalog/format';
 
 /** Header + scroll body + pinned footer shared by the booking steps. */
@@ -56,7 +56,7 @@ export function Card({ title, children }: { title?: string; children: ReactNode 
   );
 }
 
-const styles = StyleSheet.create({
+const styles = themedStyles(() => ({
   screen: { flex: 1, backgroundColor: W.background },
   header: { flexDirection: 'row', alignItems: 'center', paddingHorizontal: Space.screenX - 4, paddingBottom: Space.sm },
   body: { paddingHorizontal: Space.screenX, paddingTop: Space.sm, paddingBottom: Space.xxxl, gap: Space.lg },
@@ -75,4 +75,4 @@ const styles = StyleSheet.create({
   summaryImage: { width: 72, height: 72, borderRadius: Radius.sm },
   row: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', gap: Space.md },
   card: { borderRadius: Radius.card, borderWidth: 1, borderColor: W.border, padding: Space.lg, gap: Space.md },
-});
+}));

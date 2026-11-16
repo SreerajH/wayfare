@@ -1,13 +1,13 @@
 import * as Brightness from 'expo-brightness';
 import { useLocalSearchParams, useRouter } from 'expo-router';
 import { useEffect } from 'react';
-import { Platform, Pressable, StyleSheet, Text, View } from 'react-native';
+import { Platform, Pressable, Text, View } from 'react-native';
 import QRCode from 'react-native-qrcode-svg';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
 import { Row } from '@/components/wayfare/booking-ui';
 import { EmptyState, ErrorState, Icon, LoadingState } from '@/components/wayfare/primitives';
-import { Radius, Space, Type, W } from '@/constants/wayfare';
+import { Radius, Space, themedStyles, Type, W } from '@/constants/wayfare';
 import { useBooking } from '@/hooks/use-bookings';
 import { formatRange } from '@/lib/dates';
 import { useAuth } from '@/providers/auth-provider';
@@ -100,7 +100,7 @@ export default function TicketScreen() {
   );
 }
 
-const styles = StyleSheet.create({
+const styles = themedStyles(() => ({
   screen: { flex: 1, backgroundColor: W.dark, paddingHorizontal: Space.screenX, gap: Space.xxl },
   header: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between' },
   close: { width: 44, height: 44, borderRadius: Radius.pill, backgroundColor: W.background, alignItems: 'center', justifyContent: 'center' },
@@ -108,4 +108,4 @@ const styles = StyleSheet.create({
   void: { height: 232, alignItems: 'center', justifyContent: 'center', gap: Space.sm },
   perforation: { alignSelf: 'stretch', borderTopWidth: 1, borderStyle: 'dashed', borderColor: W.border },
   note: { color: W.textInverse, textAlign: 'center', opacity: 0.85 },
-});
+}));

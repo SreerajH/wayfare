@@ -6,7 +6,7 @@ import { FlatList, Pressable, StyleSheet, Text, useWindowDimensions, View } from
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
 import { Button } from '@/components/wayfare/controls';
-import { Radius, Space, Type, W } from '@/constants/wayfare';
+import { Radius, Space, themedStyles, Type, W } from '@/constants/wayfare';
 import { useScreenStatusBar } from '@/hooks/use-screen-status-bar';
 import { markOnboardingSeen } from '@/lib/onboarding';
 import { useAuth } from '@/providers/auth-provider';
@@ -113,7 +113,7 @@ export default function OnboardingScreen() {
   );
 }
 
-const styles = StyleSheet.create({
+const styles = themedStyles(() => ({
   screen: { flex: 1, backgroundColor: W.background },
   pager: { flexGrow: 1 },
   hero: {
@@ -137,4 +137,4 @@ const styles = StyleSheet.create({
     backgroundColor: W.background,
   },
   footer: { paddingHorizontal: Space.screenX, gap: Space.sm },
-});
+}));

@@ -7,7 +7,7 @@ import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
 import { useCoachTarget } from '@/components/wayfare/coach-marks';
 import { TabBarHeight } from '@/constants/theme';
-import { Font, Radius, W } from '@/constants/wayfare';
+import { Font, Radius, themedStyles, W } from '@/constants/wayfare';
 
 type TabBarProps = Parameters<NonNullable<ComponentProps<typeof Tabs>['tabBar']>>[0];
 type SymbolName = ComponentProps<typeof SymbolView>['name'];
@@ -119,7 +119,7 @@ function TabItem({
   );
 }
 
-const styles = StyleSheet.create({
+const styles = themedStyles(() => ({
   wrap: { position: 'absolute', left: 20, right: 20, alignItems: 'center' },
   bar: {
     width: '100%',
@@ -144,4 +144,4 @@ const styles = StyleSheet.create({
     borderColor: 'rgba(39, 193, 151, 0.55)',
   },
   label: { fontFamily: Font.medium, fontSize: 12, lineHeight: 15 },
-});
+}));

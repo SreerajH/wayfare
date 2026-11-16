@@ -1,6 +1,6 @@
 import { useRouter } from 'expo-router';
 import { useMemo, useState } from 'react';
-import { FlatList, Pressable, RefreshControl, StyleSheet, Text, View } from 'react-native';
+import { FlatList, Pressable, RefreshControl, Text, View } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
 import { StatusBadge } from '@/components/wayfare/controls';
@@ -9,7 +9,7 @@ import { RemoteImage } from '@/components/wayfare/remote-image';
 import { SignInPrompt } from '@/components/wayfare/sign-in-prompt';
 import { ListSkeleton } from '@/components/wayfare/skeleton';
 import { BottomTabInset } from '@/constants/theme';
-import { Radius, Space, Type, W } from '@/constants/wayfare';
+import { Radius, Space, themedStyles, Type, W } from '@/constants/wayfare';
 import { isUpcoming, useBookings, type Booking } from '@/hooks/use-bookings';
 import { daysBetweenInclusive, formatRange } from '@/lib/dates';
 import { useAuth } from '@/providers/auth-provider';
@@ -119,11 +119,11 @@ function TripCard({ b }: { b: Booking }) {
   );
 }
 
-const styles = StyleSheet.create({
+const styles = themedStyles(() => ({
   screen: { flex: 1, backgroundColor: W.background },
   header: { paddingHorizontal: Space.screenX, gap: Space.md, paddingBottom: Space.sm },
   tabs: { flexDirection: 'row', gap: Space.sm },
   list: { paddingHorizontal: Space.screenX, paddingTop: Space.md, gap: Space.md, flexGrow: 1 },
   card: { flexDirection: 'row', alignItems: 'center', gap: Space.md, padding: Space.md, borderRadius: Radius.card, borderWidth: 1, borderColor: W.border },
   thumb: { width: 96, height: 80, borderRadius: Radius.sm },
-});
+}));

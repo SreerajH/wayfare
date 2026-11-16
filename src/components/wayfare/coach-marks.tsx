@@ -15,7 +15,7 @@ import { Pressable, StyleSheet, Text, View, type LayoutChangeEvent, type StylePr
 import Animated, { FadeIn, FadeInDown } from 'react-native-reanimated';
 import Svg, { Defs, Mask, Rect } from 'react-native-svg';
 
-import { Font, Radius, Space, Type, W } from '@/constants/wayfare';
+import { Font, Radius, Space, themedStyles, Type, W } from '@/constants/wayfare';
 
 /**
  * First-run "coach marks": the screen dims, one control at a time is spotlighted and a small
@@ -252,7 +252,7 @@ function CoachOverlay({ step, rect, onNext, onSkip }: { step: number; rect: Box;
   );
 }
 
-const styles = StyleSheet.create({
+const styles = themedStyles(() => ({
   root: { zIndex: 900, elevation: 900 },
   card: {
     position: 'absolute',
@@ -275,4 +275,4 @@ const styles = StyleSheet.create({
   skip: { paddingVertical: Space.sm },
   next: { backgroundColor: W.dark, borderRadius: Radius.pill, paddingHorizontal: Space.xl, height: 40, justifyContent: 'center' },
   nextLabel: { fontFamily: Font.semibold, fontSize: 14, color: W.textInverse },
-});
+}));

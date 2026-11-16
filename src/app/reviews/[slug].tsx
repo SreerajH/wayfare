@@ -1,11 +1,11 @@
 import { useLocalSearchParams } from 'expo-router';
-import { FlatList, StyleSheet, Text, View } from 'react-native';
+import { FlatList, Text, View } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
 import { BackButton, EmptyState, ErrorState } from '@/components/wayfare/primitives';
 import { RatingSummary, ReviewCard } from '@/components/wayfare/reviews';
 import { ListSkeleton } from '@/components/wayfare/skeleton';
-import { Space, Type, W } from '@/constants/wayfare';
+import { Space, themedStyles, Type, W } from '@/constants/wayfare';
 import { useDestination } from '@/hooks/use-destination';
 import { useExperience } from '@/hooks/use-experience';
 import { useReviews } from '@/hooks/use-reviews';
@@ -59,11 +59,11 @@ export default function ReviewsScreen() {
   );
 }
 
-const styles = StyleSheet.create({
+const styles = themedStyles(() => ({
   screen: { flex: 1, backgroundColor: W.background },
   header: { flexDirection: 'row', alignItems: 'center', gap: Space.md, paddingHorizontal: Space.screenX - 4 },
   headerText: { flex: 1 },
   balance: { width: 44, height: 44 },
   padded: { paddingHorizontal: Space.screenX, paddingTop: Space.lg },
   list: { paddingHorizontal: Space.screenX, paddingTop: Space.lg, gap: Space.md },
-});
+}));

@@ -1,8 +1,8 @@
-import { StyleSheet, Text, View } from 'react-native';
+import { Text, View } from 'react-native';
 
 import { Icon } from '@/components/wayfare/primitives';
 import { RemoteImage } from '@/components/wayfare/remote-image';
-import { Font, Radius, W } from '@/constants/wayfare';
+import { Font, Radius, themedStyles, W } from '@/constants/wayfare';
 import { initialOf } from '@/lib/names';
 
 type Props = {
@@ -35,8 +35,8 @@ export function UserAvatar({ uri, name, size = 44 }: Props) {
   );
 }
 
-const styles = StyleSheet.create({
+const styles = themedStyles(() => ({
   monogram: { backgroundColor: W.dark, alignItems: 'center', justifyContent: 'center' },
   initial: { fontFamily: Font.semibold, color: W.textInverse, textAlign: 'center', includeFontPadding: false },
   empty: { backgroundColor: W.card, alignItems: 'center', justifyContent: 'center' },
-});
+}));

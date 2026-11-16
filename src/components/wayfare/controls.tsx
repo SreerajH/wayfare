@@ -1,7 +1,7 @@
-import { ActivityIndicator, Modal, Pressable, StyleSheet, Text, TextInput, View, type TextInputProps } from 'react-native';
+import { ActivityIndicator, Modal, Pressable, Text, TextInput, View, type TextInputProps } from 'react-native';
 
 import { Icon, type ICONS } from '@/components/wayfare/primitives';
-import { Font, Radius, Space, Type, W } from '@/constants/wayfare';
+import { Font, Radius, Space, themedStyles, Type, W } from '@/constants/wayfare';
 
 type ButtonProps = {
   label: string;
@@ -16,7 +16,7 @@ type ButtonProps = {
 
 export function Button({ label, onPress, variant = 'primary', loading, disabled, fill, icon }: ButtonProps) {
   const off = disabled || loading;
-  const bg = variant === 'primary' ? W.accentStrong : variant === 'dark' ? W.dark : 'transparent';
+  const bg = variant === 'primary' ? W.accentFill : variant === 'dark' ? W.dark : 'transparent';
   const color = variant === 'ghost' ? W.text : variant === 'danger' ? W.error : W.textInverse;
   return (
     <Pressable
@@ -43,15 +43,16 @@ export function Button({ label, onPress, variant = 'primary', loading, disabled,
   );
 }
 
-export const StatusColors = {
+/** Built at render time so they follow the current light/dark palette. */
+export const statusColors = () => ({
   confirmed: { bg: W.accentSoft, dot: W.accent, text: W.accentStrong, label: 'Confirmed' },
-  pending: { bg: 'rgba(181, 71, 8, 0.12)', dot: '#B54708', text: '#B54708', label: 'Pending' },
-  cancelled: { bg: 'rgba(217, 45, 32, 0.12)', dot: W.error, text: W.text, label: 'Cancelled' },
+  pending: { bg: W.warningSoft, dot: W.warning, text: W.warning, label: 'Pending' },
+  cancelled: { bg: W.errorSoft, dot: W.error, text: W.text, label: 'Cancelled' },
   completed: { bg: W.card, dot: W.textSecondary, text: W.text, label: 'Completed' },
-} as const;
+});
 
-export function StatusBadge({ status }: { status: keyof typeof StatusColors }) {
-  const c = StatusColors[status];
+export function StatusBadge({ status }: { status: keyof ReturnType<typeof statusColors> }) {
+  const c = statusColors()[status];
   return (
     <View style={[styles.badge, { backgroundColor: c.bg }]}>
       <View style={[styles.dot, { backgroundColor: c.dot }]} />
@@ -121,7 +122,7 @@ export function ConfirmDialog({ visible, title, message, confirmLabel, destructi
   );
 }
 
-const styles = StyleSheet.create({
+const styles = themedStyles(() => ({
   button: { height: 52, paddingHorizontal: Space.xxl, borderRadius: Radius.pill, alignItems: 'center', justifyContent: 'center' },
   buttonInner: { flexDirection: 'row', alignItems: 'center', gap: Space.sm },
   dangerBorder: { borderWidth: 1, borderColor: W.border },
@@ -142,7 +143,7 @@ const styles = StyleSheet.create({
   stepper: { flexDirection: 'row', alignItems: 'center', gap: Space.md },
   stepButton: { width: 44, height: 44, borderRadius: Radius.pill, borderWidth: 1, borderColor: W.border, alignItems: 'center', justifyContent: 'center' },
   stepValue: { color: W.text, minWidth: 20, textAlign: 'center' },
-  scrim: { flex: 1, backgroundColor: 'rgba(31, 32, 35, 0.5)', justifyContent: 'center', padding: Space.xxl },
+  scrim: { flex: 1, backgroundColor: W.scrim, justifyContent: 'center', padding: Space.xxl },
   dialog: { backgroundColor: W.background, borderRadius: Radius.sheet, padding: Space.xxl, gap: Space.md },
   dialogActions: { flexDirection: 'row', justifyContent: 'flex-end', gap: Space.sm, marginTop: Space.sm },
-});
+}));

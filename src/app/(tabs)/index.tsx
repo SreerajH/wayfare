@@ -1,6 +1,6 @@
 import { useFocusEffect, useRouter } from 'expo-router';
 import { useCallback, useState } from 'react';
-import { FlatList, Pressable, RefreshControl, ScrollView, StyleSheet, Text, View } from 'react-native';
+import { FlatList, Pressable, RefreshControl, ScrollView, Text, View } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
 import { DestinationCard, ExperienceCard } from '@/components/wayfare/cards';
@@ -9,7 +9,7 @@ import { Chip, EmptyState, ErrorState, Icon, SectionHeader } from '@/components/
 import { Bone, CarouselSkeleton, ExperienceRowSkeleton, HomeSkeleton } from '@/components/wayfare/skeleton';
 import { UserAvatar } from '@/components/wayfare/user-avatar';
 import { BottomTabInset } from '@/constants/theme';
-import { CONTINENT_LABELS, Radius, Space, Type, W } from '@/constants/wayfare';
+import { CONTINENT_LABELS, Radius, Space, themedStyles, Type, W } from '@/constants/wayfare';
 import { formatPrice } from '@/features/catalog/format';
 import { useNotifications } from '@/hooks/use-notifications';
 import { useAvatarUrl } from '@/hooks/use-profile';
@@ -216,7 +216,7 @@ export default function HomeScreen() {
   );
 }
 
-const styles = StyleSheet.create({
+const styles = themedStyles(() => ({
   screen: { flex: 1, backgroundColor: W.background },
   padded: { paddingHorizontal: Space.screenX, gap: 4 },
   greetingRow: { flexDirection: 'row', alignItems: 'center', gap: Space.md },
@@ -251,4 +251,4 @@ const styles = StyleSheet.create({
   sectionsLoading: { gap: 0 },
   sectionBlock: { marginTop: Space.xxl, gap: Space.md },
   sectionSubtitle: { color: W.textSecondary, marginTop: -2 },
-});
+}));

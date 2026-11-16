@@ -1,10 +1,10 @@
 import { useEffect, useState } from 'react';
-import { Pressable, StyleSheet, Text, View } from 'react-native';
+import { Pressable, Text, View } from 'react-native';
 import Animated, { FadeIn, LinearTransition, useAnimatedStyle, useSharedValue, withTiming } from 'react-native-reanimated';
 
 import { Icon } from '@/components/wayfare/primitives';
 import { RemoteImage } from '@/components/wayfare/remote-image';
-import { Radius, Space, Type, W } from '@/constants/wayfare';
+import { Radius, Space, themedStyles, Type, W } from '@/constants/wayfare';
 
 export type ItineraryDay = {
   id: string;
@@ -52,7 +52,7 @@ function DayRow({ day, last, expanded, onToggle }: { day: ItineraryDay; last: bo
     <Animated.View layout={layout} style={styles.row}>
       {/* rail: numbered dot + the line down to the next day */}
       <View style={styles.rail}>
-        <View style={[styles.dot, { backgroundColor: expanded ? W.accentStrong : W.dark }]}>
+        <View style={[styles.dot, { backgroundColor: expanded ? W.accentFill : W.dark }]}>
           <Text style={[Type.micro, { color: W.textInverse }]} allowFontScaling={false}>
             {day.day_number}
           </Text>
@@ -94,7 +94,7 @@ function DayRow({ day, last, expanded, onToggle }: { day: ItineraryDay; last: bo
   );
 }
 
-const styles = StyleSheet.create({
+const styles = themedStyles(() => ({
   row: { flexDirection: 'row', gap: Space.md },
   rail: { width: DOT, alignItems: 'center', paddingTop: Space.lg },
   dot: { width: DOT, height: DOT, borderRadius: Radius.pill, alignItems: 'center', justifyContent: 'center' },
@@ -116,4 +116,4 @@ const styles = StyleSheet.create({
   chevron: { width: 32, height: 32, alignItems: 'center', justifyContent: 'center' },
   body: { gap: Space.md, marginTop: Space.md },
   photo: { width: '100%', aspectRatio: 16 / 9, borderRadius: Radius.card },
-});
+}));

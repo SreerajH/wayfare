@@ -1,6 +1,6 @@
 import { useRouter } from 'expo-router';
 import { useState } from 'react';
-import { FlatList, Pressable, RefreshControl, StyleSheet, Text, View } from 'react-native';
+import { FlatList, Pressable, RefreshControl, Text, View } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
 import { HeartButton } from '@/components/wayfare/heart-button';
@@ -9,7 +9,7 @@ import { RemoteImage } from '@/components/wayfare/remote-image';
 import { SignInPrompt } from '@/components/wayfare/sign-in-prompt';
 import { GridSkeleton } from '@/components/wayfare/skeleton';
 import { BottomTabInset } from '@/constants/theme';
-import { Radius, Space, Type, W } from '@/constants/wayfare';
+import { Radius, Space, themedStyles, Type, W } from '@/constants/wayfare';
 import { formatDuration, formatPrice } from '@/features/catalog/format';
 import { useSavedItems, type SavedItem } from '@/hooks/use-saved';
 import { useAuth } from '@/providers/auth-provider';
@@ -127,7 +127,7 @@ function SavedCard({ item }: { item: SavedItem }) {
   );
 }
 
-const styles = StyleSheet.create({
+const styles = themedStyles(() => ({
   screen: { flex: 1, backgroundColor: W.background },
   header: { paddingHorizontal: Space.screenX, gap: 4, paddingBottom: Space.sm },
   chips: { flexDirection: 'row', gap: Space.sm, marginTop: Space.md },
@@ -136,4 +136,4 @@ const styles = StyleSheet.create({
   card: { flex: 1, maxWidth: '50%' },
   image: { height: 168, borderRadius: Radius.card },
   heart: { position: 'absolute', top: 4, right: 4 },
-});
+}));

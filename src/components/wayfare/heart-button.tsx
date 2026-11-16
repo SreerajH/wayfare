@@ -1,9 +1,9 @@
 import { useEffect, useRef } from 'react';
-import { Pressable, StyleSheet } from 'react-native';
+import { Pressable } from 'react-native';
 import Animated, { useAnimatedStyle, useSharedValue, withSequence, withSpring, withTiming } from 'react-native-reanimated';
 import Svg, { Path } from 'react-native-svg';
 
-import { Radius, W } from '@/constants/wayfare';
+import { Radius, themedStyles, W } from '@/constants/wayfare';
 import { useRequireAuth } from '@/hooks/use-require-auth';
 import { useIsSaved, useToggleSave, type SavedItem, type SaveTarget } from '@/hooks/use-saved';
 
@@ -64,7 +64,7 @@ export function HeartButton({ target, preview, label }: Props) {
   );
 }
 
-const styles = StyleSheet.create({
+const styles = themedStyles(() => ({
   hit: { width: 44, height: 44, alignItems: 'center', justifyContent: 'center' },
   circle: {
     width: 40,
@@ -75,4 +75,4 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
     boxShadow: '0 2px 8px rgba(0, 0, 0, 0.14)',
   },
-});
+}));

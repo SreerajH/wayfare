@@ -10,6 +10,7 @@ import { FontFiles, W } from '@/constants/wayfare';
 import { useOtaUpdates } from '@/hooks/use-ota-updates';
 import { queryClient } from '@/lib/query-client';
 import { AuthProvider } from '@/providers/auth-provider';
+import { ThemeProvider, useTheme } from '@/providers/theme-provider';
 import { ToastProvider } from '@/providers/toast-provider';
 
 SplashScreen.preventAutoHideAsync();
@@ -25,25 +26,41 @@ export default function RootLayout() {
   return (
     <QueryClientProvider client={queryClient}>
       <AuthProvider>
-        <ToastProvider>
-          <CoachMarksProvider>
-            <StatusBar style="dark" />
-            <Stack screenOptions={{ headerShown: false, contentStyle: { backgroundColor: W.background } }}>
-              <Stack.Screen name="(tabs)" />
-              <Stack.Screen name="onboarding" options={{ animation: 'fade' }} />
-              <Stack.Screen name="sign-in" />
-              <Stack.Screen name="search" options={{ animation: 'fade' }} />
-              <Stack.Screen name="destination/[slug]" />
-              <Stack.Screen name="experience/[slug]" />
-              <Stack.Screen name="book" />
-              <Stack.Screen name="trip" />
-              <Stack.Screen name="profile" />
-              <Stack.Screen name="auth/callback" />
-            </Stack>
-          </CoachMarksProvider>
-          <AnimatedSplashOverlay />
-        </ToastProvider>
+        <ThemeProvider>
+          <ToastProvider>
+            <CoachMarksProvider>
+              <ThemedStatusBar />
+              <AppStack />
+            </CoachMarksProvider>
+          </ToastProvider>
+        </ThemeProvider>
+        {/* outside the theme remount so switching themes doesn't replay the launch animation */}
+        <AnimatedSplashOverlay />
       </AuthProvider>
     </QueryClientProvider>
+  );
+}
+
+/** Dark ink on the light theme, light ink on the dark theme (screens over photos override this while focused). */
+function ThemedStatusBar() {
+  const { scheme } = useTheme();
+  return <StatusBar style={scheme === 'dark' ? 'light' : 'dark'} />;
+}
+
+/** Rendered inside the ThemeProvider so the screen background follows the theme. */
+function AppStack() {
+  return (
+    <Stack screenOptions={{ headerShown: false, contentStyle: { backgroundColor: W.background } }}>
+      <Stack.Screen name="(tabs)" />
+      <Stack.Screen name="onboarding" options={{ animation: 'fade' }} />
+      <Stack.Screen name="sign-in" />
+      <Stack.Screen name="search" options={{ animation: 'fade' }} />
+      <Stack.Screen name="destination/[slug]" />
+      <Stack.Screen name="experience/[slug]" />
+      <Stack.Screen name="book" />
+      <Stack.Screen name="trip" />
+      <Stack.Screen name="profile" />
+      <Stack.Screen name="auth/callback" />
+    </Stack>
   );
 }

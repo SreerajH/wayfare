@@ -144,8 +144,12 @@ export default function SignInScreen() {
               <Text style={[Type.bodyMedium, { color: W.accentStrong }]}>{forBooking ? 'Back to my trip details' : 'Not now — just browsing'}</Text>
             </Pressable>
             <Text style={[Type.caption, styles.terms]}>
-              By continuing you agree to Wayfare&apos;s <Text style={{ color: W.accentStrong }}>Terms of Service</Text> and{' '}
-              <Text style={{ color: W.accentStrong }}>Privacy Policy</Text>.
+              By continuing you agree to Wayfare&apos;s <Text style={{ color: W.accentStrong }} onPress={() => router.push({ pathname: '/legal/[doc]', params: { doc: 'terms' } })} accessibilityRole="link">
+                Terms of Service
+              </Text> and{' '}
+              <Text style={{ color: W.accentStrong }} onPress={() => router.push({ pathname: '/legal/[doc]', params: { doc: 'privacy' } })} accessibilityRole="link">
+                Privacy Policy
+              </Text>.
             </Text>
           </>
         ) : (

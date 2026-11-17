@@ -28,6 +28,7 @@ export type Database = {
           end_date: string
           experience_id: string
           id: string
+          infants: number
           start_date: string
           status: Database["public"]["Enums"]["booking_status"]
           total_price: number
@@ -43,6 +44,7 @@ export type Database = {
           end_date?: string
           experience_id: string
           id?: string
+          infants?: number
           start_date: string
           status?: Database["public"]["Enums"]["booking_status"]
           total_price?: number
@@ -58,6 +60,7 @@ export type Database = {
           end_date?: string
           experience_id?: string
           id?: string
+          infants?: number
           start_date?: string
           status?: Database["public"]["Enums"]["booking_status"]
           total_price?: number

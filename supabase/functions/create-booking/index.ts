@@ -83,6 +83,11 @@ Deno.serve(async (req) => {
     return json({ error: 'Choose between 0 and 10 children.' }, 400);
   }
 
+  const infants = body.infants ?? 0;
+  if (!Number.isInteger(infants) || (infants as number) < 0 || (infants as number) > 4) {
+    return json({ error: 'Choose between 0 and 4 infants.' }, 400);
+  }
+
   // contact details: the app requires a phone (older app versions don't send one, so it's checked only when present)
   const phoneRaw = typeof body.contact_phone === 'string' ? body.contact_phone.trim() : '';
   if (phoneRaw && !/^\+?[0-9 ()-]{6,20}$/.test(phoneRaw)) return json({ error: 'Enter a valid phone number.' }, 400);
@@ -109,11 +114,12 @@ Deno.serve(async (req) => {
       start_date: startDate,
       adults: adults as number,
       children: children as number,
+      infants: infants as number,
       contact_phone: phone,
       special_requests: specialRequests,
       status: 'confirmed',
     })
-    .select('id, booking_code, start_date, end_date, adults, children, total_price, status')
+    .select('id, booking_code, start_date, end_date, adults, children, infants, total_price, status')
     .single();
 
   if (insertError || !booking) {

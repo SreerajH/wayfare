@@ -61,6 +61,7 @@ function AppStack() {
       <Stack.Screen name="trip" />
       <Stack.Screen name="profile" />
       <Stack.Screen name="auth/callback" />
+      <Stack.Screen name="legal/[doc]" />
     </Stack>
   );
 }

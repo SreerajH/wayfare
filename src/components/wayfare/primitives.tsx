@@ -40,6 +40,9 @@ export const ICONS = {
   heart: { ios: 'heart', android: 'favorite_border', web: 'favorite_border' },
   wifiOff: { ios: 'wifi.slash', android: 'wifi_off', web: 'wifi_off' },
   tips: { ios: 'lightbulb', android: 'lightbulb', web: 'lightbulb' },
+  share: { ios: 'square.and.arrow.up', android: 'share', web: 'share' },
+  directions: { ios: 'map', android: 'directions', web: 'directions' },
+  calendarAdd: { ios: 'calendar.badge.plus', android: 'event_available', web: 'event_available' },
 } as const;
 
 export function Icon({ name, size = 20, color = W.text }: { name: keyof typeof ICONS; size?: number; color?: string }) {

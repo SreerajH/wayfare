@@ -11,7 +11,8 @@ import { ListSkeleton } from '@/components/wayfare/skeleton';
 import { CONTINENT_LABELS, Font, Radius, Space, themedStyles, Type, W } from '@/constants/wayfare';
 import { useDestinationList } from '@/hooks/use-destinations';
 import { isSectionKey, rankExperiences, SECTION_META, useRankedExperiences, type SectionKey } from '@/hooks/use-experience-sections';
-import { sortExperiences, useSearch, type SearchFilters } from '@/hooks/use-search';
+import { DURATION_RANGES, SORT_OPTIONS, sortExperiences, useSearch, type SearchFilters } from '@/hooks/use-search';
+import { formatPrice } from '@/features/catalog/format';
 import type { Enums } from '@/types/database';
 
 type Continent = Enums<'continent'>;
@@ -97,6 +98,25 @@ export default function SearchScreen() {
           <Chip key={c} label={CONTINENT_LABELS[c]} active={filters.continent === c} onPress={() => toggle('continent', c)} />
         ))}
       </ScrollView>
+
+      {appliedChips(filters).length > 0 ? (
+        <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={styles.applied} style={{ flexGrow: 0 }}>
+          {appliedChips(filters).map((c) => (
+            <Pressable
+              key={c.key}
+              onPress={() => setFilters((f) => c.clear(f))}
+              accessibilityRole="button"
+              accessibilityLabel={`Remove filter ${c.label}`}
+              style={styles.appliedChip}>
+              <Text style={[Type.micro, { color: W.accentStrong }]}>{c.label}</Text>
+              <Icon name="close" size={14} color={W.accentStrong} />
+            </Pressable>
+          ))}
+          <Pressable onPress={() => setFilters({})} accessibilityRole="button" style={styles.clearAll}>
+            <Text style={[Type.micro, { color: W.textSecondary, textDecorationLine: 'underline' }]}>Clear all</Text>
+          </Pressable>
+        </ScrollView>
+      ) : null}
 
       <ScrollView contentContainerStyle={[styles.body, { paddingBottom: insets.bottom + Space.xxxl }]} keyboardShouldPersistTaps="handled">
         {!search.enabled && sort ? (
@@ -207,6 +227,21 @@ export default function SearchScreen() {
   );
 }
 
+/** Sheet-only filters shown as one-tap removable chips (region already has its own chip row). */
+function appliedChips(f: SearchFilters) {
+  const chips: { key: string; label: string; clear: (f: SearchFilters) => SearchFilters }[] = [];
+  if (f.order) chips.push({ key: 'order', label: SORT_OPTIONS.find((o) => o.value === f.order)?.label ?? 'Sorted', clear: (x) => ({ ...x, order: undefined }) });
+  if (f.minPrice != null || f.maxPrice != null) {
+    const label = `${formatPrice(f.minPrice ?? 0)} – ${f.maxPrice != null ? formatPrice(f.maxPrice) : 'any'}`;
+    chips.push({ key: 'price', label, clear: (x) => ({ ...x, minPrice: undefined, maxPrice: undefined }) });
+  }
+  if (f.duration) chips.push({ key: 'duration', label: DURATION_RANGES[f.duration].label, clear: (x) => ({ ...x, duration: undefined }) });
+  if (f.minRating) chips.push({ key: 'rating', label: `${f.minRating}+ stars`, clear: (x) => ({ ...x, minRating: undefined }) });
+  if (f.minReviews) chips.push({ key: 'reviews', label: `${f.minReviews}+ reviews`, clear: (x) => ({ ...x, minReviews: undefined }) });
+  if (f.trending) chips.push({ key: 'trending', label: 'Trending', clear: (x) => ({ ...x, trending: undefined }) });
+  return chips;
+}
+
 function DestinationRow({ d }: { d: DestinationRowData }) {
   const router = useRouter();
   return (
@@ -291,6 +326,17 @@ const styles = themedStyles(() => ({
     gap: Space.sm,
     paddingVertical: Space.sm,
   },
+  applied: { paddingHorizontal: Space.screenX, gap: Space.sm, paddingBottom: Space.sm, alignItems: 'center' },
+  appliedChip: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 4,
+    minHeight: 32,
+    paddingHorizontal: Space.md,
+    borderRadius: Radius.pill,
+    backgroundColor: W.accentSoft,
+  },
+  clearAll: { minHeight: 32, justifyContent: 'center', paddingHorizontal: Space.xs },
   body: {
     paddingHorizontal: Space.screenX,
     paddingTop: Space.md,

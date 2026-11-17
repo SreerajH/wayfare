@@ -24,6 +24,8 @@ import { Row } from '@/components/wayfare/booking-ui';
 import { Button } from '@/components/wayfare/controls';
 import { Icon } from '@/components/wayfare/primitives';
 import { Radius, Space, themedStyles, Type, W } from '@/constants/wayfare';
+import { addTripToCalendar, shareTrip } from '@/features/booking/trip-actions';
+import { travelersLabel } from '@/features/booking/travelers';
 import { formatRange } from '@/lib/dates';
 import { useToast } from '@/providers/toast-provider';
 
@@ -43,11 +45,6 @@ function successHaptic() {
   Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success).catch(() => {});
 }
 
-function travelersLabel(adults: number, children: number) {
-  const parts = [`${adults} ${adults === 1 ? 'adult' : 'adults'}`];
-  if (children > 0) parts.push(`${children} ${children === 1 ? 'child' : 'children'}`);
-  return parts.join(' · ');
-}
 
 export default function ConfirmedRoute() {
   return (
@@ -58,7 +55,17 @@ export default function ConfirmedRoute() {
 }
 
 function ConfirmedScreen() {
-  const p = useLocalSearchParams<{ id: string; code: string; title: string; start: string; end: string; adults?: string; children?: string }>();
+  const p = useLocalSearchParams<{
+    id: string;
+    code: string;
+    title: string;
+    place?: string;
+    start: string;
+    end: string;
+    adults?: string;
+    children?: string;
+    infants?: string;
+  }>();
   const router = useRouter();
   const insets = useSafeAreaInsets();
   const toast = useToast();
@@ -100,6 +107,8 @@ function ConfirmedScreen() {
 
   const adults = Number(p.adults) || 0;
   const children = Number(p.children) || 0;
+  const infants = Number(p.infants) || 0;
+  const trip = { title: p.title, place: p.place || undefined, start: p.start, end: p.end, code: p.code };
 
   const copyCode = async () => {
     await Clipboard.setStringAsync(p.code);
@@ -149,10 +158,16 @@ function ConfirmedScreen() {
           </View>
           {p.title ? <Row label="Trip" value={p.title} /> : null}
           {p.start && p.end ? <Row label="Dates" value={formatRange(p.start, p.end)} /> : null}
-          {adults > 0 ? <Row label="Travelers" value={travelersLabel(adults, children)} /> : null}
+          {adults > 0 ? <Row label="Travelers" value={travelersLabel(adults, children, infants)} /> : null}
         </Animated.View>
+        {p.start && p.end ? (
+          <Animated.View entering={enter(3)} style={styles.quickRow}>
+            <QuickAction icon="calendarAdd" label="Add to calendar" onPress={() => addTripToCalendar(trip).catch(() => toast('Could not open your calendar'))} />
+            <QuickAction icon="share" label="Share trip" onPress={() => shareTrip(trip).catch(() => {})} />
+          </Animated.View>
+        ) : null}
       </View>
-      <Animated.View entering={enter(3)} style={{ gap: Space.sm }}>
+      <Animated.View entering={enter(4)} style={{ gap: Space.sm }}>
         <Button label="View trip" onPress={() => router.replace({ pathname: '/trip/[id]', params: { id: p.id } })} fill />
         <Button label="Back to home" variant="ghost" onPress={() => router.replace('/')} fill />
       </Animated.View>
@@ -160,7 +175,27 @@ function ConfirmedScreen() {
   );
 }
 
+function QuickAction({ icon, label, onPress }: { icon: 'calendarAdd' | 'share'; label: string; onPress: () => void }) {
+  return (
+    <Pressable onPress={onPress} accessibilityRole="button" style={({ pressed }) => [styles.quick, pressed && { opacity: 0.7 }]}>
+      <Icon name={icon} size={18} color={W.accentStrong} />
+      <Text style={[Type.bodyMedium, { color: W.text }]}>{label}</Text>
+    </Pressable>
+  );
+}
+
 const styles = themedStyles(() => ({
+  quickRow: { flexDirection: 'row', gap: Space.sm, alignSelf: 'stretch' },
+  quick: {
+    flex: 1,
+    minHeight: 48,
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+    gap: Space.sm,
+    borderRadius: Radius.pill,
+    backgroundColor: W.card,
+  },
   screen: { flex: 1, backgroundColor: W.background, paddingHorizontal: Space.screenX, justifyContent: 'space-between' },
   center: { alignItems: 'center', gap: Space.lg },
   markWrap: { width: CIRCLE, height: CIRCLE, alignItems: 'center', justifyContent: 'center', marginBottom: Space.sm },

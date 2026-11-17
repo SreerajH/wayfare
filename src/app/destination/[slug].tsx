@@ -1,8 +1,8 @@
 import { LinearGradient } from 'expo-linear-gradient';
 import { useLocalSearchParams } from 'expo-router';
 import { useRef, useState, type ComponentRef } from 'react';
-import { Pressable, ScrollView, StyleSheet, Text, View } from 'react-native';
-import Animated from 'react-native-reanimated';
+import { Pressable, ScrollView, StyleSheet, Text, useWindowDimensions, View } from 'react-native';
+import Animated, { FadeInDown, FadeOutDown } from 'react-native-reanimated';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
 import { ExperienceCard } from '@/components/wayfare/cards';
@@ -13,7 +13,7 @@ import { BackButton, EmptyState, ErrorState, Icon, RatingBadge, SectionHeader } 
 import { RemoteImage } from '@/components/wayfare/remote-image';
 import { DetailSkeleton } from '@/components/wayfare/skeleton';
 import { Radius, Space, themedStyles, Type, W } from '@/constants/wayfare';
-import { formatReviews } from '@/features/catalog/format';
+import { formatPrice, formatReviews } from '@/features/catalog/format';
 import { useDestination } from '@/hooks/use-destination';
 import { defaultStatusBarStyle, useScreenStatusBar } from '@/hooks/use-screen-status-bar';
 
@@ -26,6 +26,10 @@ export default function DestinationScreen() {
   const scroller = useRef<ComponentRef<typeof ScrollView>>(null);
   const [sheetY, setSheetY] = useState(0);
   const [reviewsY, setReviewsY] = useState(0);
+  // where the trips list sits in the sheet, and whether any of it is on screen right now
+  const [tripsBox, setTripsBox] = useState<{ y: number; h: number } | null>(null);
+  const [tripsVisible, setTripsVisible] = useState(true);
+  const { height: windowH } = useWindowDimensions();
   // light ink while the hero photo is behind the status bar, dark once the white sheet reaches it
   const [pastHero, setPastHero] = useState(false);
   useScreenStatusBar(pastHero || !q.data ? defaultStatusBarStyle() : 'light');
@@ -56,16 +60,28 @@ export default function DestinationScreen() {
   }
 
   const d = q.data;
+  const from = d.experiences.length ? Math.min(...d.experiences.map((e) => e.price_per_person)) : null;
+  const scrollToTrips = () => {
+    if (tripsBox) scroller.current?.scrollTo({ y: Math.max(0, sheetY + tripsBox.y - insets.top - Space.lg), animated: true });
+  };
   return (
+    <View style={styles.screen}>
     <ScrollView
       ref={scroller}
       style={styles.screen}
       scrollEventThrottle={32}
       onScroll={(ev) => {
-        const past = ev.nativeEvent.contentOffset.y > HERO_HEIGHT - Space.xxl - insets.top;
+        const y = ev.nativeEvent.contentOffset.y;
+        const past = y > HERO_HEIGHT - Space.xxl - insets.top;
         if (past !== pastHero) setPastHero(past);
+        if (tripsBox) {
+          const top = sheetY + tripsBox.y;
+          // "visible" = at least the first card's worth of the list is inside the viewport
+          const visible = top + 160 < y + windowH && top + tripsBox.h > y + insets.top;
+          if (visible !== tripsVisible) setTripsVisible(visible);
+        }
       }}
-      contentContainerStyle={{ paddingBottom: insets.bottom + Space.xxxl }}>
+      contentContainerStyle={{ paddingBottom: insets.bottom + Space.xxxl + 72 }}>
       <View style={styles.hero}>
         <RemoteImage uri={d.hero_image_url} label={d.name} style={StyleSheet.absoluteFill} />
         {/* status-bar scrim so the time and battery stay readable on bright photos */}
@@ -108,7 +124,10 @@ export default function DestinationScreen() {
           </View>
         ) : null}
 
-        <Animated.View layout={expandLayout} style={styles.section}>
+        <Animated.View
+          layout={expandLayout}
+          style={styles.section}
+          onLayout={(e) => setTripsBox({ y: e.nativeEvent.layout.y, h: e.nativeEvent.layout.height })}>
           <SectionHeader title="Popular experiences" />
           {d.experiences.length === 0 ? (
             <EmptyState height={160} title="No experiences yet" message="New experiences are on the way." />
@@ -136,6 +155,24 @@ export default function DestinationScreen() {
         </Animated.View>
       </View>
     </ScrollView>
+
+      {/* a way back to booking from anywhere on the page (hidden while the trips list is on screen) */}
+      {!tripsVisible && from != null ? (
+        <Animated.View entering={FadeInDown.duration(200)} exiting={FadeOutDown.duration(150)} style={[styles.cta, { bottom: insets.bottom + Space.lg }]}>
+          <Pressable onPress={scrollToTrips} accessibilityRole="button" style={({ pressed }) => [styles.ctaInner, pressed && { opacity: 0.85 }]}>
+            <View style={{ flex: 1 }}>
+              <Text style={[Type.bodyMedium, { color: W.textInverse }]}>
+                {d.experiences.length} {d.experiences.length === 1 ? 'trip' : 'trips'} in {d.name}
+              </Text>
+              <Text style={[Type.caption, { color: W.textInverse, opacity: 0.8 }]}>From {formatPrice(from)} / person</Text>
+            </View>
+            <View style={styles.ctaPill}>
+              <Text style={[Type.bodyMedium, { color: W.text }]}>View trips</Text>
+            </View>
+          </Pressable>
+        </Animated.View>
+      ) : null}
+    </View>
   );
 }
 
@@ -164,5 +201,23 @@ const styles = themedStyles(() => ({
   description: { marginTop: Space.sm },
   section: { marginTop: Space.xxl, gap: Space.lg },
   // the review cards scroll edge to edge, so undo the sheet's side padding
+  cta: { position: 'absolute', left: Space.screenX, right: Space.screenX },
+  ctaInner: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: Space.md,
+    paddingLeft: Space.xl,
+    paddingRight: 6,
+    paddingVertical: 6,
+    minHeight: 60,
+    borderRadius: Radius.pill,
+    backgroundColor: W.accentFill,
+    shadowColor: '#000',
+    shadowOpacity: 0.2,
+    shadowRadius: 12,
+    shadowOffset: { width: 0, height: 4 },
+    elevation: 6,
+  },
+  ctaPill: { paddingHorizontal: Space.lg, paddingVertical: Space.md, borderRadius: Radius.pill, backgroundColor: W.background },
   reviewsBlock: { marginTop: Space.xxxl, marginHorizontal: -Space.screenX },
 }));

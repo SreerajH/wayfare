@@ -63,6 +63,7 @@ export function Calendar({ minDate, maxDate, start, durationDays, onSelectStart 
             const disabled = date < minDate || date > maxDate;
             const isEdge = date === start || date === end;
             const inRange = !!start && !!end && date > start && date < end;
+            const weekend = di === 0 || di === 6;
             return (
               <Pressable
                 key={di}
@@ -76,12 +77,18 @@ export function Calendar({ minDate, maxDate, start, durationDays, onSelectStart 
                   <Text style={[Type.bodyMedium, { color: isEdge ? W.textInverse : disabled ? W.border : W.text }]}>
                     {parseISODate(date).getDate()}
                   </Text>
+                  {/* weekend starts sell out first: a small dot as a hint */}
+                  {weekend && !disabled && !isEdge ? <View style={styles.dot} /> : null}
                 </View>
               </Pressable>
             );
           })}
         </View>
       ))}
+      <View style={styles.legend}>
+        <View style={[styles.dot, styles.legendDot]} />
+        <Text style={[Type.micro, { color: W.textSecondary }]}>Weekend starts are popular, so book these early</Text>
+      </View>
     </View>
   );
 }
@@ -104,4 +111,7 @@ const styles = themedStyles(() => ({
   band: { backgroundColor: W.accentSoft },
   day: { width: 40, height: 40, borderRadius: Radius.pill, alignItems: 'center', justifyContent: 'center' },
   edge: { backgroundColor: W.accentFill },
+  dot: { position: 'absolute', bottom: 5, width: 4, height: 4, borderRadius: 2, backgroundColor: W.accentStrong },
+  legend: { flexDirection: 'row', alignItems: 'center', gap: Space.sm, paddingHorizontal: Space.xs, paddingTop: Space.sm },
+  legendDot: { position: 'relative', bottom: 0 },
 }));

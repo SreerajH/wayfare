@@ -6,7 +6,7 @@ import { supabase } from '@/lib/supabase';
 import { useAuth } from '@/providers/auth-provider';
 
 const BOOKING_SELECT =
-  'id, booking_code, start_date, end_date, adults, children, total_price, status, created_at, ' +
+  'id, booking_code, start_date, end_date, adults, children, infants, total_price, status, created_at, ' +
   'experience:experiences(id, slug, title, subtitle, cover_image_url, duration_days, duration_nights, currency, destination:destinations(name, country))';
 
 export type Booking = {
@@ -16,6 +16,7 @@ export type Booking = {
   end_date: string;
   adults: number;
   children: number;
+  infants: number;
   total_price: number;
   status: 'pending' | 'confirmed' | 'cancelled' | 'completed';
   created_at: string;
@@ -101,6 +102,7 @@ export type CreateBookingInput = {
   start_date: string;
   adults: number;
   children: number;
+  infants?: number;
   payment: PaymentResult;
   contact_phone?: string;
   special_requests?: string;

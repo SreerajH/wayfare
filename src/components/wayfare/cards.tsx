@@ -41,7 +41,7 @@ export function DestinationCard({ id, slug, name, country, heroImageUrl, rating,
             <Text style={[Type.micro, { color: W.textInverse }]}>{formatReviews(reviewCount)}</Text>
           </View>
           <View style={styles.glass}>
-            <Text style={[Type.bodyMedium, { color: W.textInverse }]}>Explore destination</Text>
+            <Text style={[Type.bodyMedium, { color: W.textInverse, fontSize: 15 }]}>Explore destination</Text>
             {/* space for the arrow button, which sits on top as a sibling (a button can't hold a button on web) */}
             <View style={styles.glassArrowSlot} />
           </View>

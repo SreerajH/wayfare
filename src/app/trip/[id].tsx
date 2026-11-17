@@ -1,6 +1,6 @@
 import { useLocalSearchParams, useRouter } from 'expo-router';
 import { useState } from 'react';
-import { ScrollView, StyleSheet, Text, View } from 'react-native';
+import { Pressable, ScrollView, StyleSheet, Text, View } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
 import { Card, Row } from '@/components/wayfare/booking-ui';
@@ -9,6 +9,8 @@ import { BackButton, EmptyState, ErrorState, Icon } from '@/components/wayfare/p
 import { RemoteImage } from '@/components/wayfare/remote-image';
 import { DetailSkeleton } from '@/components/wayfare/skeleton';
 import { Radius, Space, themedStyles, Type, W } from '@/constants/wayfare';
+import { addTripToCalendar, contactSupport, openDirections } from '@/features/booking/trip-actions';
+import { travelersLabel } from '@/features/booking/travelers';
 import { isUpcoming, useBooking, useCancelBooking } from '@/hooks/use-bookings';
 import { useExperience } from '@/hooks/use-experience';
 import { daysBetweenInclusive, formatRange } from '@/lib/dates';
@@ -45,6 +47,7 @@ export default function TripDetailsScreen() {
   const title = b.experience?.title ?? 'Experience';
   const days = daysBetweenInclusive(b.start_date, b.end_date);
   const upcoming = isUpcoming(b);
+  const place = b.experience?.destination ? `${b.experience.destination.name}, ${b.experience.destination.country}` : undefined;
   const total = new Intl.NumberFormat('en-US', { style: 'currency', currency: b.experience?.currency ?? 'USD' }).format(b.total_price);
 
   const doCancel = async () => {
@@ -80,7 +83,7 @@ export default function TripDetailsScreen() {
 
           <Card>
             <Line icon="calendar" text={`${formatRange(b.start_date, b.end_date)} · ${days} ${days === 1 ? 'day' : 'days'}`} />
-            <Line icon="people" text={[`${b.adults} ${b.adults === 1 ? 'adult' : 'adults'}`, b.children ? `${b.children} ${b.children === 1 ? 'child' : 'children'}` : ''].filter(Boolean).join(', ')} />
+            <Line icon="people" text={travelersLabel(b.adults, b.children, b.infants)} />
             <Row label="Booking ID" value={b.booking_code} strong />
             <Row label="Total paid" value={total} />
           </Card>
@@ -101,21 +104,80 @@ export default function TripDetailsScreen() {
           {b.status !== 'cancelled' ? (
             <Button label="Show QR ticket" variant="dark" onPress={() => router.push({ pathname: '/trip/ticket/[id]', params: { id: b.id } })} fill />
           ) : null}
-          {upcoming ? <Button label="Cancel booking" variant="danger" onPress={() => setConfirming(true)} fill /> : null}
+
+          {/* what travellers reach for before and during the trip */}
+          <View style={styles.actions}>
+            {upcoming && place ? (
+              <ActionRow icon="directions" label="Get directions" detail={place} onPress={() => openDirections(place).catch(() => toast('Could not open Maps'))} />
+            ) : null}
+            {upcoming ? (
+              <ActionRow
+                icon="calendarAdd"
+                label="Add to calendar"
+                detail={formatRange(b.start_date, b.end_date)}
+                onPress={() =>
+                  addTripToCalendar({ title, place, start: b.start_date, end: b.end_date, code: b.booking_code }).catch(() =>
+                    toast('Could not open your calendar'),
+                  )
+                }
+              />
+            ) : null}
+            <ActionRow
+              icon="help"
+              label="Contact support"
+              detail={`About booking ${b.booking_code}`}
+              onPress={() => contactSupport(b.booking_code).catch(() => toast('No email app found'))}
+              last
+            />
+          </View>
+
+          {/* cancelling is available but deliberately quiet */}
+          {upcoming ? (
+            <Pressable onPress={() => setConfirming(true)} accessibilityRole="button" hitSlop={8} style={styles.cancelLink}>
+              <Text style={[Type.bodyMedium, { color: W.error }]}>Cancel booking</Text>
+              <Text style={[Type.caption, { color: W.textSecondary }]}>Free until your trip starts · full refund</Text>
+            </Pressable>
+          ) : null}
         </View>
       </ScrollView>
 
       <ConfirmDialog
         visible={confirming}
         title="Cancel this trip?"
-        message={`${title}, ${formatRange(b.start_date, b.end_date)}. This can't be undone.`}
-        confirmLabel="Cancel booking"
+        message={`${title}, ${formatRange(b.start_date, b.end_date)}.\nYou'll get a full refund of ${total} to your original payment method. This can't be undone.`}
+        confirmLabel="Cancel and refund"
         destructive
         loading={cancel.isPending}
         onConfirm={doCancel}
         onCancel={() => setConfirming(false)}
       />
     </View>
+  );
+}
+
+function ActionRow({ icon, label, detail, onPress, last }: {
+  icon: 'directions' | 'calendarAdd' | 'help';
+  label: string;
+  detail: string;
+  onPress: () => void;
+  last?: boolean;
+}) {
+  return (
+    <Pressable
+      onPress={onPress}
+      accessibilityRole="button"
+      style={({ pressed }) => [styles.actionRow, !last && styles.actionDivider, pressed && { opacity: 0.6 }]}>
+      <View style={styles.actionIcon}>
+        <Icon name={icon} size={20} color={W.accentStrong} />
+      </View>
+      <View style={{ flex: 1 }}>
+        <Text style={[Type.bodyMedium, { color: W.text }]}>{label}</Text>
+        <Text style={[Type.caption, { color: W.textSecondary }]} numberOfLines={1}>
+          {detail}
+        </Text>
+      </View>
+      <Icon name="chevronRight" color={W.textSecondary} />
+    </Pressable>
   );
 }
 
@@ -143,5 +205,10 @@ const styles = themedStyles(() => ({
   },
   titleRow: { flexDirection: 'row', alignItems: 'center', gap: Space.sm },
   day: { flexDirection: 'row', alignItems: 'center', gap: Space.md },
+  actions: { borderRadius: Radius.card, borderWidth: 1, borderColor: W.border, paddingHorizontal: Space.lg },
+  actionRow: { flexDirection: 'row', alignItems: 'center', gap: Space.md, paddingVertical: Space.md, minHeight: 64 },
+  actionDivider: { borderBottomWidth: 1, borderBottomColor: W.border },
+  actionIcon: { width: 40, height: 40, borderRadius: Radius.pill, backgroundColor: W.accentSoft, alignItems: 'center', justifyContent: 'center' },
+  cancelLink: { alignItems: 'center', gap: 2, paddingVertical: Space.md },
   dayPill: { paddingVertical: 4, paddingHorizontal: Space.sm, borderRadius: Radius.pill, backgroundColor: W.accentSoft },
 }));

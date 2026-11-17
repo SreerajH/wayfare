@@ -14,6 +14,8 @@ export const ICONS = {
   people: { ios: 'person.2', android: 'group', web: 'group' },
   coffee: { ios: 'cup.and.saucer', android: 'local_cafe', web: 'local_cafe' },
   check: { ios: 'checkmark.circle', android: 'check_circle', web: 'check_circle' },
+  // bare checkmark for small sizes / inside an existing circle (the circled glyph clips when tiny on Android)
+  tick: { ios: 'checkmark', android: 'check', web: 'check' },
   plus: { ios: 'plus', android: 'add', web: 'add' },
   minus: { ios: 'minus', android: 'remove', web: 'remove' },
   calendar: { ios: 'calendar', android: 'calendar_month', web: 'calendar_month' },

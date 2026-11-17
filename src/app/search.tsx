@@ -86,13 +86,13 @@ export default function SearchScreen() {
           <Icon name="filter" color={W.textInverse} />
           {activeFilterCount(filters) ? (
             <View style={styles.filterBadge}>
-              <Text style={[Type.micro, { color: W.textInverse }]}>{activeFilterCount(filters)}</Text>
+              <Text style={styles.filterBadgeText}>{activeFilterCount(filters)}</Text>
             </View>
           ) : null}
         </Pressable>
       </View>
 
-      <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={styles.chips} style={{ flexGrow: 0 }}>
+      <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={styles.chips} style={{ flexGrow: 0, flexShrink: 0 }}>
         {sort ? <Chip label={`${SECTION_META[sort].title}  ✕`} active onPress={() => setSort(undefined)} /> : null}
         {CONTINENTS.map((c) => (
           <Chip key={c} label={CONTINENT_LABELS[c]} active={filters.continent === c} onPress={() => toggle('continent', c)} />
@@ -100,7 +100,7 @@ export default function SearchScreen() {
       </ScrollView>
 
       {appliedChips(filters).length > 0 ? (
-        <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={styles.applied} style={{ flexGrow: 0 }}>
+        <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={styles.applied} style={{ flexGrow: 0, flexShrink: 0 }}>
           {appliedChips(filters).map((c) => (
             <Pressable
               key={c.key}
@@ -304,15 +304,26 @@ const styles = themedStyles(() => ({
     position: 'absolute',
     top: -2,
     right: -2,
-    minWidth: 20,
-    height: 20,
-    paddingHorizontal: 4,
+    minWidth: 22,
+    height: 22,
+    paddingHorizontal: 5,
     borderRadius: Radius.pill,
     backgroundColor: W.accentFill,
     borderWidth: 2,
     borderColor: W.background,
     alignItems: 'center',
     justifyContent: 'center',
+  },
+  // fixed line box = badge's inner height so the digit sits dead centre (Android adds font padding otherwise)
+  filterBadgeText: {
+    fontFamily: Font.medium,
+    fontSize: 11,
+    lineHeight: 18,
+    height: 18,
+    color: W.textInverse,
+    textAlign: 'center',
+    textAlignVertical: 'center',
+    includeFontPadding: false,
   },
   searchInput: {
     flex: 1,
@@ -326,7 +337,8 @@ const styles = themedStyles(() => ({
     gap: Space.sm,
     paddingVertical: Space.sm,
   },
-  applied: { paddingHorizontal: Space.screenX, gap: Space.sm, paddingBottom: Space.sm, alignItems: 'center' },
+  // a clear gap below the region chips so the two rows don't read as one cluster
+  applied: { paddingHorizontal: Space.screenX, gap: Space.sm, paddingTop: Space.sm, paddingBottom: Space.md, alignItems: 'center' },
   appliedChip: {
     flexDirection: 'row',
     alignItems: 'center',

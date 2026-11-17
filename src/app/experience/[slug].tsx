@@ -36,7 +36,7 @@ const SECTIONS: { key: SectionKey; label: string }[] = [
 function Fact({ icon, label, accent }: { icon: keyof typeof ICONS; label: string; accent?: boolean }) {
   return (
     <View style={[styles.fact, accent && styles.factAccent]}>
-      <Icon name={icon} size={14} color={accent ? W.accentStrong : W.textSecondary} />
+      <Icon name={icon} size={16} color={accent ? W.accentStrong : W.textSecondary} />
       <Text style={[Type.micro, { color: accent ? W.accentStrong : W.text }]}>{label}</Text>
     </View>
   );
@@ -144,7 +144,7 @@ export default function ExperienceScreen() {
           <View style={styles.facts}>
             <Fact icon="calendar" label={formatDuration(e.duration_days, e.duration_nights)} />
             {e.subtitle ? <Fact icon="sparkle" label={e.subtitle} /> : null}
-            <Fact icon="check" label="Free cancellation" accent />
+            <Fact icon="tick" label="Free cancellation" accent />
           </View>
 
           {e.summary ? <Text style={[Type.body, { color: W.textSecondary }]}>{e.summary}</Text> : null}
@@ -155,7 +155,7 @@ export default function ExperienceScreen() {
               {e.highlights.map((h) => (
                 <View key={h} style={styles.highlightRow}>
                   <View style={styles.highlightDot}>
-                    <Icon name="check" size={14} color={W.accentStrong} />
+                    <Icon name="tick" size={16} color={W.accentStrong} />
                   </View>
                   <Text style={[Type.body, { color: W.text, flex: 1 }]}>{h}</Text>
                 </View>

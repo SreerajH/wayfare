@@ -11,15 +11,21 @@ import { ListSkeleton } from '@/components/wayfare/skeleton';
 import { CONTINENT_LABELS, Font, Radius, Space, themedStyles, Type, W } from '@/constants/wayfare';
 import { useDestinationList } from '@/hooks/use-destinations';
 import { isSectionKey, rankExperiences, SECTION_META, useRankedExperiences, type SectionKey } from '@/hooks/use-experience-sections';
-import { useSearch, type SearchFilters } from '@/hooks/use-search';
+import { sortExperiences, useSearch, type SearchFilters } from '@/hooks/use-search';
 import type { Enums } from '@/types/database';
 
 type Continent = Enums<'continent'>;
 const CONTINENTS = Object.keys(CONTINENT_LABELS) as Continent[];
 
 type DestinationRowData = {
-  id: string; slug: string; name: string; country: string; continent: Continent;
-  hero_image_url: string | null; rating: number | null; experienceCount?: number;
+  id: string;
+  slug: string;
+  name: string;
+  country: string;
+  continent: Continent;
+  hero_image_url: string | null;
+  rating: number | null;
+  experienceCount?: number;
 };
 
 export default function SearchScreen() {
@@ -36,7 +42,14 @@ export default function SearchScreen() {
   const all = useDestinationList();
 
   // with a sort active, search results follow the same ranking (and its filters, e.g. day trips only)
-  const experiences = search.data ? (sort ? rankExperiences(search.data.experiences, sort) : search.data.experiences) : [];
+  // an explicit "Sort by" from the Filters sheet wins over the section's ranking
+  const experiences = search.data
+    ? filters.order
+      ? sortExperiences(search.data.experiences, filters.order)
+      : sort
+        ? rankExperiences(search.data.experiences, sort)
+        : search.data.experiences
+    : [];
 
   const toggle = <K extends keyof SearchFilters>(key: K, value: SearchFilters[K]) =>
     setFilters((f) => ({ ...f, [key]: f[key] === value ? undefined : value }));
@@ -198,7 +211,12 @@ function DestinationRow({ d }: { d: DestinationRowData }) {
   const router = useRouter();
   return (
     <Pressable
-      onPress={() => router.push({ pathname: '/destination/[slug]', params: { slug: d.slug } })}
+      onPress={() =>
+        router.push({
+          pathname: '/destination/[slug]',
+          params: { slug: d.slug },
+        })
+      }
       accessibilityRole="button"
       accessibilityLabel={`${d.name}, ${d.country}`}
       style={({ pressed }) => [styles.row, pressed && { opacity: 0.7 }]}>
@@ -223,7 +241,12 @@ function DestinationRow({ d }: { d: DestinationRowData }) {
 
 const styles = themedStyles(() => ({
   screen: { flex: 1, backgroundColor: W.background },
-  searchRow: { flexDirection: 'row', alignItems: 'center', gap: Space.sm, paddingHorizontal: Space.screenX - 4 },
+  searchRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: Space.sm,
+    paddingHorizontal: Space.screenX - 4,
+  },
   searchBox: {
     flex: 1,
     height: 48,
@@ -234,7 +257,14 @@ const styles = themedStyles(() => ({
     borderRadius: Radius.pill,
     backgroundColor: W.card,
   },
-  filterButton: { width: 48, height: 48, borderRadius: Radius.pill, backgroundColor: W.dark, alignItems: 'center', justifyContent: 'center' },
+  filterButton: {
+    width: 48,
+    height: 48,
+    borderRadius: Radius.pill,
+    backgroundColor: W.dark,
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
   filterBadge: {
     position: 'absolute',
     top: -2,
@@ -249,10 +279,29 @@ const styles = themedStyles(() => ({
     alignItems: 'center',
     justifyContent: 'center',
   },
-  searchInput: { flex: 1, fontFamily: Font.regular, fontSize: 15, color: W.text, height: '100%' },
-  chips: { paddingHorizontal: Space.screenX, gap: Space.sm, paddingVertical: Space.sm },
-  body: { paddingHorizontal: Space.screenX, paddingTop: Space.md, gap: Space.sm },
-  row: { flexDirection: 'row', alignItems: 'center', gap: Space.lg, paddingVertical: Space.sm },
+  searchInput: {
+    flex: 1,
+    fontFamily: Font.regular,
+    fontSize: 15,
+    color: W.text,
+    height: '100%',
+  },
+  chips: {
+    paddingHorizontal: Space.screenX,
+    gap: Space.sm,
+    paddingVertical: Space.sm,
+  },
+  body: {
+    paddingHorizontal: Space.screenX,
+    paddingTop: Space.md,
+    gap: Space.sm,
+  },
+  row: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: Space.lg,
+    paddingVertical: Space.sm,
+  },
   thumb: { width: 72, height: 72, borderRadius: Radius.card },
   meta: { flexDirection: 'row', alignItems: 'center', gap: Space.sm },
 }));

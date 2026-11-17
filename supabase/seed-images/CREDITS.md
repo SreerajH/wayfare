@@ -29,3 +29,10 @@ Destination heroes, Tokyo and Culture & Cuisine photos were supplied by the proj
 | `inclusions/queenstown-alpine-escape-transport.webp` | [Orbus bus.jpg](https://commons.wikimedia.org/wiki/File:Orbus_bus.jpg) | Yvanyblog | CC BY-SA 4.0 |
 | `inclusions/queenstown-alpine-escape-tours.webp` | [A view from the top. (51913677625).jpg](https://commons.wikimedia.org/wiki/File:A_view_from_the_top._(51913677625).jpg) | Bernard Spragg. NZ from Christchurch, New Zealand | Public domain |
 | `inclusions/queenstown-alpine-escape-breakfast.webp` | [Full English breakfast at the Chalet Cafe, Cowfold, West Sussex, England.jpg](https://commons.wikimedia.org/wiki/File:Full_English_breakfast_at_the_Chalet_Cafe,_Cowfold,_West_Sussex,_England.jpg) | Acabashi | CC BY-SA 4.0 |
+
+## Client-supplied photos
+
+| File | Source |
+| --- | --- |
+| `experiences/tokyo-essentials-shibuya.webp` | Supplied by the client (Shibuya Crossing) |
+| `experiences/brooklyn-food-walk-dumbo.webp` | Supplied by the client (DUMBO arches, Brooklyn) |

@@ -46,7 +46,7 @@ export function rankExperiences<T extends Rankable>(list: readonly T[], key: Sec
 async function fetchCatalog() {
   const { data, error } = await supabase
     .from('experiences')
-    .select(`${EXPERIENCE_CARD_FIELDS}, destination:destinations(name, country, continent)`);
+    .select(`${EXPERIENCE_CARD_FIELDS}, is_trending, destination:destinations(name, country, continent)`);
   if (error) throw error;
   return data;
 }

@@ -6,19 +6,34 @@ import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { Button } from '@/components/wayfare/controls';
 import { Chip } from '@/components/wayfare/primitives';
 import { RangeSlider } from '@/components/wayfare/range-slider';
-import { Radius, Space, themedStyles, Type, W } from '@/constants/wayfare';
+import { CONTINENT_LABELS, Radius, Space, themedStyles, Type, W } from '@/constants/wayfare';
 import { formatPrice } from '@/features/catalog/format';
 import { useCatalog, type CatalogExperience } from '@/hooks/use-experience-sections';
-import { DURATION_RANGES, type DurationBucket, type SearchFilters } from '@/hooks/use-search';
+import { DURATION_RANGES, SORT_OPTIONS, type DurationBucket, type SearchFilters, type SortOrder } from '@/hooks/use-search';
+import type { Enums } from '@/types/database';
+
+type Continent = Enums<'continent'>;
+const CONTINENTS = Object.keys(CONTINENT_LABELS) as Continent[];
 
 export const PRICE_MIN = 0;
 export const PRICE_MAX = 1500;
 const PRICE_STEP = 50;
-const RATINGS: { label: string; value?: number }[] = [{ label: 'Any' }, { label: '4.0+', value: 4 }, { label: '4.5+', value: 4.5 }];
+const RATINGS: { label: string; value?: number }[] = [
+  { label: 'Any' },
+  { label: '4.0+', value: 4 },
+  { label: '4.5+', value: 4.5 },
+  { label: '4.8+', value: 4.8 },
+];
+const REVIEWS: { label: string; value?: number }[] = [
+  { label: 'Any' },
+  { label: '150+ reviews', value: 150 },
+  { label: '250+ reviews', value: 250 },
+];
 
 /** How many of the Filters sheet's own fields are set (for the badge on the filter button). */
 export function activeFilterCount(f: SearchFilters) {
-  return (f.minPrice != null || f.maxPrice != null ? 1 : 0) + (f.duration ? 1 : 0) + (f.minRating ? 1 : 0);
+  return [f.minPrice != null || f.maxPrice != null, f.duration, f.minRating, f.trending, f.minReviews, f.order, f.continent].filter(Boolean)
+    .length;
 }
 
 function matches(e: CatalogExperience, f: SearchFilters, query: string) {
@@ -26,6 +41,8 @@ function matches(e: CatalogExperience, f: SearchFilters, query: string) {
   if (q.length >= 2 && !e.title.toLowerCase().includes(q)) return false;
   if (f.continent && e.destination?.continent !== f.continent) return false;
   if (f.minRating && (e.rating ?? 0) < f.minRating) return false;
+  if (f.trending && !e.is_trending) return false;
+  if (f.minReviews && e.review_count < f.minReviews) return false;
   if (f.minPrice != null && e.price_per_person < f.minPrice) return false;
   if (f.maxPrice != null && e.price_per_person > f.maxPrice) return false;
   if (f.duration) {
@@ -35,8 +52,14 @@ function matches(e: CatalogExperience, f: SearchFilters, query: string) {
   return true;
 }
 
-/** Figma "Wayfare / Filters" (A5): price range, duration, rating, and a live "Apply · N results". */
-export function FiltersSheet({ visible, value, query, onApply, onClose }: {
+/** Figma "Wayfare / Filters" (A5): sort, region, price, duration, rating, popularity, and a live "Apply · N results". */
+export function FiltersSheet({
+  visible,
+  value,
+  query,
+  onApply,
+  onClose,
+}: {
   visible: boolean;
   value: SearchFilters;
   query: string;
@@ -51,16 +74,33 @@ export function FiltersSheet({ visible, value, query, onApply, onClose }: {
   );
 }
 
-function Sheet({ value, query, onApply, onClose }: { value: SearchFilters; query: string; onApply: (f: SearchFilters) => void; onClose: () => void }) {
+function Sheet({
+  value,
+  query,
+  onApply,
+  onClose,
+}: {
+  value: SearchFilters;
+  query: string;
+  onApply: (f: SearchFilters) => void;
+  onClose: () => void;
+}) {
   const insets = useSafeAreaInsets();
   const catalog = useCatalog();
   const [price, setPrice] = useState<[number, number]>([value.minPrice ?? PRICE_MIN, value.maxPrice ?? PRICE_MAX]);
   const [duration, setDuration] = useState<DurationBucket | undefined>(value.duration);
   const [minRating, setMinRating] = useState<number | undefined>(value.minRating);
+  const [order, setOrder] = useState<SortOrder | undefined>(value.order);
+  const [continent, setContinent] = useState<Continent | undefined>(value.continent);
+  const [trending, setTrending] = useState(!!value.trending);
+  const [minReviews, setMinReviews] = useState<number | undefined>(value.minReviews);
 
   const draft: SearchFilters = {
-    continent: value.continent,
+    continent,
     minRating,
+    order,
+    trending: trending || undefined,
+    minReviews,
     duration,
     minPrice: price[0] > PRICE_MIN ? price[0] : undefined,
     maxPrice: price[1] < PRICE_MAX ? price[1] : undefined,
@@ -72,6 +112,10 @@ function Sheet({ value, query, onApply, onClose }: { value: SearchFilters; query
     setPrice([PRICE_MIN, PRICE_MAX]);
     setDuration(undefined);
     setMinRating(undefined);
+    setOrder(undefined);
+    setContinent(undefined);
+    setTrending(false);
+    setMinReviews(undefined);
   };
 
   return (
@@ -90,6 +134,35 @@ function Sheet({ value, query, onApply, onClose }: { value: SearchFilters; query
 
         <ScrollView bounces={false} style={styles.scroll} contentContainerStyle={styles.groups}>
           <View style={styles.group}>
+            <Text style={[Type.subheading, { color: W.text }]}>Sort by</Text>
+            <View style={styles.chips}>
+              {SORT_OPTIONS.map((o) => (
+                <Chip
+                  key={o.value}
+                  label={o.label}
+                  active={(order ?? 'rating') === o.value}
+                  onPress={() => setOrder(o.value === 'rating' ? undefined : o.value)}
+                />
+              ))}
+            </View>
+          </View>
+
+          <View style={styles.group}>
+            <Text style={[Type.subheading, { color: W.text }]}>Region</Text>
+            <View style={styles.chips}>
+              <Chip label="Anywhere" active={!continent} onPress={() => setContinent(undefined)} />
+              {CONTINENTS.map((c) => (
+                <Chip
+                  key={c}
+                  label={CONTINENT_LABELS[c]}
+                  active={continent === c}
+                  onPress={() => setContinent(continent === c ? undefined : c)}
+                />
+              ))}
+            </View>
+          </View>
+
+          <View style={styles.group}>
             <View style={styles.labelRow}>
               <Text style={[Type.subheading, { color: W.text }]}>Price range</Text>
               <Text style={[Type.bodyMedium, { color: W.textSecondary }]}>{priceLabel}</Text>
@@ -102,7 +175,12 @@ function Sheet({ value, query, onApply, onClose }: { value: SearchFilters; query
             <Text style={[Type.subheading, { color: W.text }]}>Duration</Text>
             <View style={styles.chips}>
               {(Object.keys(DURATION_RANGES) as DurationBucket[]).map((k) => (
-                <Chip key={k} label={DURATION_RANGES[k].label} active={duration === k} onPress={() => setDuration(duration === k ? undefined : k)} />
+                <Chip
+                  key={k}
+                  label={DURATION_RANGES[k].label}
+                  active={duration === k}
+                  onPress={() => setDuration(duration === k ? undefined : k)}
+                />
               ))}
             </View>
           </View>
@@ -115,10 +193,35 @@ function Sheet({ value, query, onApply, onClose }: { value: SearchFilters; query
               ))}
             </View>
           </View>
+
+          <View style={styles.group}>
+            <Text style={[Type.subheading, { color: W.text }]}>Popularity</Text>
+            <View style={styles.chips}>
+              {REVIEWS.map((r) => (
+                <Chip key={r.label} label={r.label} active={minReviews === r.value} onPress={() => setMinReviews(r.value)} />
+              ))}
+            </View>
+          </View>
+
+          <Pressable
+            onPress={() => setTrending((t) => !t)}
+            accessibilityRole="switch"
+            accessibilityState={{ checked: trending }}
+            style={styles.toggleRow}>
+            <View style={{ flex: 1, gap: 2 }}>
+              <Text style={[Type.subheading, { color: W.text }]}>Trending now</Text>
+              <Text style={[Type.caption, { color: W.textSecondary }]}>Trips travellers are booking this month</Text>
+            </View>
+            <View style={[styles.switchTrack, trending && styles.switchTrackOn]}>
+              <View style={[styles.switchKnob, trending && styles.switchKnobOn]} />
+            </View>
+          </Pressable>
         </ScrollView>
 
         <Button
-          label={count == null ? 'Apply' : count === 0 ? 'No matches — adjust filters' : `Apply · ${count} ${count === 1 ? 'result' : 'results'}`}
+          label={
+            count == null ? 'Apply' : count === 0 ? 'No matches — adjust filters' : `Apply · ${count} ${count === 1 ? 'result' : 'results'}`
+          }
           disabled={count === 0}
           onPress={() => onApply(draft)}
           fill
@@ -140,13 +243,49 @@ const styles = themedStyles(() => ({
     paddingTop: Space.md,
     gap: Space.xl,
   },
-  grabber: { alignSelf: 'center', width: 40, height: 4, borderRadius: Radius.pill, backgroundColor: W.border },
-  header: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between' },
+  grabber: {
+    alignSelf: 'center',
+    width: 40,
+    height: 4,
+    borderRadius: Radius.pill,
+    backgroundColor: W.border,
+  },
+  header: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+  },
   link: { minHeight: 44, justifyContent: 'center' },
   // size to content, shrink (and scroll) only when the sheet hits its max height
   scroll: { flexGrow: 0, flexShrink: 1 },
   groups: { gap: Space.xxl },
   group: { gap: Space.sm },
-  labelRow: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between' },
+  labelRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+  },
   chips: { flexDirection: 'row', flexWrap: 'wrap', gap: Space.sm },
+  toggleRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: Space.lg,
+    minHeight: 48,
+  },
+  switchTrack: {
+    width: 48,
+    height: 28,
+    borderRadius: Radius.pill,
+    backgroundColor: W.border,
+    padding: 3,
+    justifyContent: 'center',
+  },
+  switchTrackOn: { backgroundColor: W.accentFill },
+  switchKnob: {
+    width: 22,
+    height: 22,
+    borderRadius: Radius.pill,
+    backgroundColor: '#FFFFFF',
+  },
+  switchKnobOn: { alignSelf: 'flex-end' },
 }));

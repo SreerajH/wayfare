@@ -23,10 +23,21 @@ type Continent = Enums<'continent'>;
 const CONTINENTS = Object.keys(CONTINENT_LABELS) as Continent[];
 
 /** The pill on a card's photo says why it is in this section. */
+/** Ribbon on the first card of the ranked rows (the other rows aren't rankings, so no #1). */
+const FEATURED_LABEL: Partial<Record<SectionKey, string>> = {
+  popular: '#1 Most popular',
+  value: '#1 Best value',
+  rating: '#1 Top rated',
+};
+
 function sectionBadge(key: SectionKey, e: CatalogExperience) {
   if (key === 'popular') return { label: 'Popular', tone: 'dark' as const };
   // per-day figure is a comparison aid, so whole dollars read better than cents
-  if (key === 'value') return { label: `${formatPrice(Math.round(pricePerDay(e)), e.currency)} / day`, tone: 'accent' as const };
+  if (key === 'value')
+    return {
+      label: `${formatPrice(Math.round(pricePerDay(e)), e.currency)} / day`,
+      tone: 'accent' as const,
+    };
   return undefined;
 }
 
@@ -64,7 +75,10 @@ export default function HomeScreen() {
     <ScrollView
       style={styles.screen}
       refreshControl={<RefreshControl refreshing={refreshing} onRefresh={onRefresh} tintColor={W.accentStrong} />}
-      contentContainerStyle={{ paddingTop: insets.top + Space.sm, paddingBottom: insets.bottom + BottomTabInset + Space.xxl }}>
+      contentContainerStyle={{
+        paddingTop: insets.top + Space.sm,
+        paddingBottom: insets.bottom + BottomTabInset + Space.xxl,
+      }}>
       <View style={styles.padded}>
         <View style={styles.greetingRow}>
           <View style={{ flex: 1 }}>
@@ -181,7 +195,12 @@ export default function HomeScreen() {
               <SectionHeader
                 title={section.title}
                 action="See all"
-                onAction={() => router.push({ pathname: '/search', params: { sort: section.key } })}
+                onAction={() =>
+                  router.push({
+                    pathname: '/search',
+                    params: { sort: section.key },
+                  })
+                }
               />
               <Text style={[Type.caption, styles.sectionSubtitle]}>{section.subtitle}</Text>
             </View>
@@ -191,23 +210,28 @@ export default function HomeScreen() {
               keyExtractor={(e) => e.id}
               showsHorizontalScrollIndicator={false}
               contentContainerStyle={styles.carousel}
-              renderItem={({ item }) => (
-                <ExperienceCard
-                  width={280}
-                  id={item.id}
-                  slug={item.slug}
-                  title={item.title}
-                  place={item.destination ? `${item.destination.name}, ${item.destination.country}` : undefined}
-                  badge={sectionBadge(section.key, item)}
-                  durationDays={item.duration_days}
-                  durationNights={item.duration_nights}
-                  pricePerPerson={item.price_per_person}
-                  currency={item.currency}
-                  coverImageUrl={item.cover_image_url}
-                  rating={item.rating}
-                  reviewCount={item.review_count}
-                />
-              )}
+              renderItem={({ item, index }) => {
+                const featured = index === 0 ? FEATURED_LABEL[section.key] : undefined;
+                return (
+                  <ExperienceCard
+                    width={280}
+                    featured={featured}
+                    id={item.id}
+                    slug={item.slug}
+                    title={item.title}
+                    place={item.destination ? `${item.destination.name}, ${item.destination.country}` : undefined}
+                    // the ribbon already says "Most popular", so the #1 card skips the repeated pill
+                    badge={featured && section.key === 'popular' ? undefined : sectionBadge(section.key, item)}
+                    durationDays={item.duration_days}
+                    durationNights={item.duration_nights}
+                    pricePerPerson={item.price_per_person}
+                    currency={item.currency}
+                    coverImageUrl={item.cover_image_url}
+                    rating={item.rating}
+                    reviewCount={item.review_count}
+                  />
+                );
+              }}
             />
           </View>
         ))
@@ -220,8 +244,20 @@ const styles = themedStyles(() => ({
   screen: { flex: 1, backgroundColor: W.background },
   padded: { paddingHorizontal: Space.screenX, gap: 4 },
   greetingRow: { flexDirection: 'row', alignItems: 'center', gap: Space.md },
-  avatarHit: { width: 48, height: 48, alignItems: 'center', justifyContent: 'center' },
-  bell: { width: 44, height: 44, borderRadius: Radius.pill, backgroundColor: W.card, alignItems: 'center', justifyContent: 'center' },
+  avatarHit: {
+    width: 48,
+    height: 48,
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  bell: {
+    width: 44,
+    height: 44,
+    borderRadius: Radius.pill,
+    backgroundColor: W.card,
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
   bellDot: {
     position: 'absolute',
     top: 10,
@@ -233,9 +269,21 @@ const styles = themedStyles(() => ({
     borderWidth: 1.5,
     borderColor: W.card,
   },
-  searchRow: { flexDirection: 'row', alignItems: 'center', gap: Space.sm, marginTop: Space.xl },
+  searchRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: Space.sm,
+    marginTop: Space.xl,
+  },
   searchWrap: { flex: 1 },
-  filterButton: { width: 48, height: 48, borderRadius: Radius.pill, backgroundColor: W.dark, alignItems: 'center', justifyContent: 'center' },
+  filterButton: {
+    width: 48,
+    height: 48,
+    borderRadius: Radius.pill,
+    backgroundColor: W.dark,
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
   search: {
     height: 48,
     flexDirection: 'row',
@@ -246,7 +294,11 @@ const styles = themedStyles(() => ({
     backgroundColor: W.card,
   },
   sectionTitle: { color: W.text, marginTop: Space.xxl },
-  chips: { paddingHorizontal: Space.screenX, gap: Space.sm, paddingVertical: Space.sm },
+  chips: {
+    paddingHorizontal: Space.screenX,
+    gap: Space.sm,
+    paddingVertical: Space.sm,
+  },
   carousel: { paddingHorizontal: Space.screenX, gap: Space.lg },
   sectionsLoading: { gap: 0 },
   sectionBlock: { marginTop: Space.xxl, gap: Space.md },

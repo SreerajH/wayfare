@@ -103,7 +103,7 @@ type ExperienceCardProps = {
 export function ExperienceCard(p: ExperienceCardProps) {
   const router = useRouter();
   const open = () => router.push({ pathname: '/experience/[slug]', params: { slug: p.slug } });
-  const featured = !!p.featured;
+  const featured = p.featured !== undefined;
   return (
     <View style={p.width ? { width: p.width } : null}>
       <Pressable
@@ -128,12 +128,12 @@ export function ExperienceCard(p: ExperienceCardProps) {
             <View
               style={[
                 styles.badge,
-                p.featured && styles.badgeUnderRibbon,
+                p.featured ? styles.badgeUnderRibbon : null, featured && styles.badgeFeatured,
                 {
                   backgroundColor: p.badge.tone === 'accent' ? W.accentFill : W.dark,
                 },
               ]}>
-              <Text style={[Type.micro, { color: W.textInverse }]}>{p.badge.label}</Text>
+              <Text style={[Type.micro, { color: W.textInverse }, featured && styles.featuredText]}>{p.badge.label}</Text>
             </View>
           ) : null}
         </View>
@@ -283,6 +283,7 @@ const styles = themedStyles(() => ({
     elevation: 3,
   },
   featuredText: { color: '#FFFFFF', fontWeight: '700' },
+  badgeFeatured: { paddingHorizontal: Space.sm + 2, paddingVertical: 5 },
   badgeUnderRibbon: { top: Space.sm + 32 },
   badge: {
     position: 'absolute',

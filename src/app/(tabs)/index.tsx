@@ -26,7 +26,7 @@ const CONTINENTS = Object.keys(CONTINENT_LABELS) as Continent[];
 /** Ribbon on the first card of the ranked rows (the other rows aren't rankings, so no #1). */
 const FEATURED_LABEL: Partial<Record<SectionKey, string>> = {
   popular: '#1 Most popular',
-  value: '#1 Best value',
+  value: '', // outline only: the bold per-day price is the highlight (two pills looked cluttered)
   rating: '#1 Top rated',
 };
 

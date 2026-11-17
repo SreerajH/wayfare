@@ -1,5 +1,5 @@
 import { Pressable, type StyleProp, type ViewStyle } from 'react-native';
-import Animated, { Easing, runOnJS, useAnimatedStyle, useSharedValue, withSequence, withTiming } from 'react-native-reanimated';
+import Animated, { Easing, useAnimatedStyle, useSharedValue, withSequence, withTiming } from 'react-native-reanimated';
 
 import { Icon } from '@/components/wayfare/primitives';
 
@@ -33,13 +33,13 @@ export function ArrowButton({
     const ease = Easing.out(Easing.cubic);
     x.set(
       withSequence(
-        withTiming(OUT, { duration: 170, easing: Easing.in(Easing.cubic) }, (done) => {
-          if (done) runOnJS(onPress)();
-        }),
+        withTiming(OUT, { duration: 170, easing: Easing.in(Easing.cubic) }),
         withTiming(-OUT, { duration: 0 }),
         withTiming(0, { duration: 260, easing: ease }),
       ),
     );
+    // navigate from the JS thread as the arrow leaves (a UI-thread animation callback didn't fire reliably on Android)
+    setTimeout(onPress, 170);
     opacity.set(withSequence(withTiming(0, { duration: 170 }), withTiming(1, { duration: 260 })));
   };
 

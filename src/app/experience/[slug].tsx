@@ -235,7 +235,7 @@ export default function ExperienceScreen() {
       <View
         style={[styles.header, { paddingTop: insets.top + Space.sm }]}
         onLayout={(ev) => {
-          headerH.value = ev.nativeEvent.layout.height;
+          headerH.set(ev.nativeEvent.layout.height);
         }}>
         <Animated.View pointerEvents="none" style={[StyleSheet.absoluteFill, styles.headerSolid, headerBg]} />
             <BackButton />

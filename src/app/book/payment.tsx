@@ -2,10 +2,12 @@ import { useLocalSearchParams, useRouter } from 'expo-router';
 import { useState } from 'react';
 import { Pressable, Text, View } from 'react-native';
 
+import { RequireAuth } from '@/components/require-auth';
 import { BookingScaffold, Card, Row } from '@/components/wayfare/booking-ui';
 import { Button } from '@/components/wayfare/controls';
 import { ErrorState, Icon, LoadingState } from '@/components/wayfare/primitives';
 import { Radius, Space, themedStyles, Type, W } from '@/constants/wayfare';
+import { getBookingContact } from '@/features/booking/contact';
 import { MockPaymentProvider } from '@/features/booking/payment';
 import { useCreateBooking, useQuote } from '@/hooks/use-bookings';
 import { useExperience } from '@/hooks/use-experience';
@@ -13,7 +15,15 @@ import { readableError } from '@/lib/errors';
 
 type Phase = 'idle' | 'paying' | 'booking';
 
-export default function PaymentScreen() {
+export default function PaymentRoute() {
+  return (
+    <RequireAuth>
+      <PaymentScreen />
+    </RequireAuth>
+  );
+}
+
+function PaymentScreen() {
   const p = useLocalSearchParams<{ slug: string; start: string; adults: string; children: string }>();
   const adults = Number(p.adults) || 1;
   const children = Number(p.children) || 0;
@@ -40,7 +50,16 @@ export default function PaymentScreen() {
       setPhase('paying');
       const payment = await MockPaymentProvider.pay({ amount: q.total, currency: q.currency, description: e.title });
       setPhase('booking');
-      const booking = await createBooking.mutateAsync({ experience_id: e.id, start_date: p.start, adults, children, payment });
+      const contact = getBookingContact();
+      const booking = await createBooking.mutateAsync({
+        experience_id: e.id,
+        start_date: p.start,
+        adults,
+        children,
+        payment,
+        contact_phone: contact?.phone,
+        special_requests: contact?.requests || undefined,
+      });
       router.dismissAll();
       router.replace({ pathname: '/book/confirmed', params: { id: booking.id, code: booking.booking_code, title: e.title, start: booking.start_date, end: booking.end_date, adults: String(adults), children: String(children) } });
     } catch (err) {
@@ -90,8 +109,8 @@ export default function PaymentScreen() {
         <Row label={`${e.title} · ${adults + children} ${adults + children === 1 ? 'traveler' : 'travelers'}`} value={total} strong />
       </Card>
       <View style={{ flexDirection: 'row', gap: Space.sm, alignItems: 'center' }}>
-        <Icon name="lock" color={W.textSecondary} />
-        <Text style={[Type.caption, { color: W.textSecondary, flex: 1 }]}>The price is recalculated on our server before your booking is confirmed.</Text>
+        <Icon name="lock" color={W.accentStrong} />
+        <Text style={[Type.caption, { color: W.textSecondary, flex: 1 }]}>Secure checkout · Price locked · Free cancellation until your trip starts.</Text>
       </View>
     </BookingScaffold>
   );

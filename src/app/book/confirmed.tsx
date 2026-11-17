@@ -1,3 +1,4 @@
+import { RequireAuth } from '@/components/require-auth';
 import * as Clipboard from 'expo-clipboard';
 import * as Haptics from 'expo-haptics';
 import { useLocalSearchParams, useRouter } from 'expo-router';
@@ -48,7 +49,15 @@ function travelersLabel(adults: number, children: number) {
   return parts.join(' · ');
 }
 
-export default function ConfirmedScreen() {
+export default function ConfirmedRoute() {
+  return (
+    <RequireAuth>
+      <ConfirmedScreen />
+    </RequireAuth>
+  );
+}
+
+function ConfirmedScreen() {
   const p = useLocalSearchParams<{ id: string; code: string; title: string; start: string; end: string; adults?: string; children?: string }>();
   const router = useRouter();
   const insets = useSafeAreaInsets();

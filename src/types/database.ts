@@ -22,6 +22,8 @@ export type Database = {
           adults: number
           booking_code: string
           children: number
+          contact_phone: string | null
+          special_requests: string | null
           created_at: string
           end_date: string
           experience_id: string
@@ -35,6 +37,8 @@ export type Database = {
           adults?: number
           booking_code?: string
           children?: number
+          contact_phone?: string | null
+          special_requests?: string | null
           created_at?: string
           end_date?: string
           experience_id: string
@@ -48,6 +52,8 @@ export type Database = {
           adults?: number
           booking_code?: string
           children?: number
+          contact_phone?: string | null
+          special_requests?: string | null
           created_at?: string
           end_date?: string
           experience_id?: string
@@ -127,6 +133,8 @@ export type Database = {
           destination_id: string
           duration_days: number
           duration_nights: number
+          highlights: string[]
+          summary: string | null
           id: string
           is_trending: boolean
           price_per_person: number
@@ -143,6 +151,8 @@ export type Database = {
           destination_id: string
           duration_days: number
           duration_nights: number
+          highlights?: string[]
+          summary?: string | null
           id?: string
           is_trending?: boolean
           price_per_person: number
@@ -159,6 +169,8 @@ export type Database = {
           destination_id?: string
           duration_days?: number
           duration_nights?: number
+          highlights?: string[]
+          summary?: string | null
           id?: string
           is_trending?: boolean
           price_per_person?: number

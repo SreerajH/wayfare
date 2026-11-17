@@ -11,6 +11,7 @@ import { Type, W } from '@/constants/wayfare';
 import { formatPrice } from '@/features/catalog/format';
 import { useQuote } from '@/hooks/use-bookings';
 import { useExperience } from '@/hooks/use-experience';
+import { useRequireAuth } from '@/hooks/use-require-auth';
 import { addDays, formatRange, today } from '@/lib/dates';
 
 const MAX_PARTY = 10;
@@ -18,6 +19,7 @@ const MAX_PARTY = 10;
 export default function SelectDatesScreen() {
   const { slug } = useLocalSearchParams<{ slug: string }>();
   const router = useRouter();
+  const requireAuth = useRequireAuth();
   const exp = useExperience(slug);
   const [start, setStart] = useState<string | null>(null);
   const [adults, setAdults] = useState(2);
@@ -40,7 +42,7 @@ export default function SelectDatesScreen() {
         <>
           <View style={{ flexShrink: 1 }}>
             <Text style={[Type.caption, { color: W.textSecondary }]}>
-              Total · {adults + children} {adults + children === 1 ? 'traveler' : 'travelers'}
+              Total · {adults + children} {adults + children === 1 ? 'traveler' : 'travelers'} · incl. taxes
             </Text>
             <Text style={[Type.subheading, { color: W.text }]}>
               {quote.data ? formatPrice(quote.data.total, quote.data.currency) : quote.isError ? '—' : '…'}
@@ -49,12 +51,11 @@ export default function SelectDatesScreen() {
           <Button
             label="Continue"
             disabled={!start || !quote.data}
-            onPress={() =>
-              router.push({
-                pathname: '/book/review',
-                params: { slug, start: start!, adults: String(adults), children: String(children) },
-              })
-            }
+            onPress={() => {
+              const params = { slug, start: start!, adults: String(adults), children: String(children) };
+              // guests sign in here, then land straight on Review with their picks
+              if (requireAuth(`/book/review?${new URLSearchParams(params).toString()}`)) router.push({ pathname: '/book/review', params });
+            }}
           />
         </>
       }>

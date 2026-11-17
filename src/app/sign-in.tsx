@@ -23,6 +23,8 @@ function safeReturn(returnTo: string | undefined): Href {
 
 export default function SignInScreen() {
   const { returnTo, error: linkError } = useLocalSearchParams<{ returnTo?: string; error?: string }>();
+  // came from the booking flow: the copy talks about confirming the booking, not about the app
+  const forBooking = !!returnTo?.startsWith('/book/');
   const router = useRouter();
   const insets = useSafeAreaInsets();
   const { session, setOnboardingSeen } = useAuth();
@@ -98,8 +100,12 @@ export default function SignInScreen() {
               <Text style={styles.logoText}>W</Text>
             </View>
             <View style={{ gap: Space.sm }}>
-              <Text style={[Type.display, { color: W.text }]}>Welcome to Wayfare</Text>
-              <Text style={[Type.body, { color: W.textSecondary }]}>Sign in to save places, book experiences and keep every ticket in one place.</Text>
+              <Text style={[Type.display, { color: W.text }]}>{forBooking ? 'Almost there' : 'Welcome to Wayfare'}</Text>
+              <Text style={[Type.body, { color: W.textSecondary }]}>
+                {forBooking
+                  ? 'Sign in to confirm your booking. Your dates and travelers are saved, and your ticket will be ready in Trips.'
+                  : 'Sign in to save places, book experiences and keep every ticket in one place.'}
+              </Text>
             </View>
 
             <Pressable
@@ -135,7 +141,7 @@ export default function SignInScreen() {
             />
             <Button label="Send code" onPress={sendCode} loading={sending} fill />
             <Pressable onPress={browse} accessibilityRole="button" style={styles.browse}>
-              <Text style={[Type.bodyMedium, { color: W.accentStrong }]}>Not now — just browsing</Text>
+              <Text style={[Type.bodyMedium, { color: W.accentStrong }]}>{forBooking ? 'Back to my trip details' : 'Not now — just browsing'}</Text>
             </Pressable>
             <Text style={[Type.caption, styles.terms]}>
               By continuing you agree to Wayfare&apos;s <Text style={{ color: W.accentStrong }}>Terms of Service</Text> and{' '}

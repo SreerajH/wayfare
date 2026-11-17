@@ -102,6 +102,8 @@ export type CreateBookingInput = {
   adults: number;
   children: number;
   payment: PaymentResult;
+  contact_phone?: string;
+  special_requests?: string;
 };
 
 /** Calls the create-booking Edge Function with the user's JWT (added by supabase-js). */

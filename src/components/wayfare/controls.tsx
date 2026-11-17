@@ -68,7 +68,7 @@ export function TextField({ label, error, helper, ...props }: TextInputProps & {
       <TextInput
         placeholderTextColor={W.textSecondary}
         {...props}
-        style={[styles.input, props.editable === false && { color: W.textSecondary }, !!error && { borderColor: W.error }]}
+        style={[styles.input, props.style, props.editable === false && { color: W.textSecondary }, !!error && { borderColor: W.error }]}
       />
       {error ? <Text style={[Type.caption, { color: W.error }]}>{error}</Text> : helper ? <Text style={[Type.caption, { color: W.textSecondary }]}>{helper}</Text> : null}
     </View>

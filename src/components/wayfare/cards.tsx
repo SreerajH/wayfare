@@ -150,7 +150,7 @@ export function ExperienceCard(p: ExperienceCardProps) {
             </View>
           ) : null}
           <Text style={[Type.caption, { color: W.textSecondary }]}>
-            {formatDuration(p.durationDays, p.durationNights)} · from {formatPrice(p.pricePerPerson, p.currency)} / person
+            {formatDuration(p.durationDays, p.durationNights)} · {formatPrice(p.pricePerPerson, p.currency)} / person
           </Text>
           <View style={[styles.row, styles.expFooter]}>
             <View style={[styles.row, styles.footerMeta]}>
